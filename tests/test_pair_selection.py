@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
-from pair_selection import select_pairs
+from src.data.pair_selection import select_pairs
 
 def test_select_pairs_basic():
     prices = pd.DataFrame({

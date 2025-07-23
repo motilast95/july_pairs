@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
 import numpy as np
-from portfolio_analysis import aggregate_portfolio_pnl, compute_portfolio_metrics
+from src.analysis.portfolio_analysis import aggregate_portfolio_pnl, compute_portfolio_metrics
 
 def test_portfolio_aggregation_and_metrics():
     # Create fake per-pair results with daily_pnl series

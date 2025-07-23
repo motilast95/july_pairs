@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
-from model_fitting import fit_spread
+from src.models.model_fitting import fit_spread
 
 def test_fit_spread_basic():
     prices = pd.DataFrame({

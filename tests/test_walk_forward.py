@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
-from walk_forward import walk_forward
+from src.trading.walk_forward import walk_forward
 
 def test_walk_forward_basic():
     # Create sample price data

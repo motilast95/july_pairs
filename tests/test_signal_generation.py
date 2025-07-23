@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
 import numpy as np
-from signal_generation import generate_signals, generate_rolling_scaled_signals
+from src.models.signal_generation import generate_signals, generate_rolling_scaled_signals
 
 def test_generate_signals_basic():
     spread = pd.Series([0, 1, 2, 1, 0, -1, -2, -1, 0])

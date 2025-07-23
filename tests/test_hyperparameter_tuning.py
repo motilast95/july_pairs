@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
 import numpy as np
-from hyperparameter_tuning import tune_hyperparameters
+from scripts.hyperparameter_tuning import tune_hyperparameters
 
 def test_tune_hyperparameters_basic():
     prices = pd.DataFrame({

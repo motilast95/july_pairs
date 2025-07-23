@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pandas as pd
 import numpy as np
-from backtest import run_backtest, compute_performance_metrics
+from src.trading.backtest import run_backtest, compute_performance_metrics
 
 def test_run_backtest_and_metrics():
     spread = pd.Series(np.cumsum(np.random.normal(0, 1, 100)))
