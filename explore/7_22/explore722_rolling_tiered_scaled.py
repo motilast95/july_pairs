@@ -18,7 +18,7 @@ config = {
     'exit_z': 0.25,
     'prototype': True,
     'tickers': list(set(sum(sector_tickers.values(), []))),
-    'start_date': '2016-01-01',
+    'start_date': '2020-01-01',
     'end_date': '2025-07-01',
     'signal_method': 'tiered',
     'rolling_window': 60,

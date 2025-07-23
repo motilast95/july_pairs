@@ -28,8 +28,8 @@ config = {
     'rolling_window': 60,
     'scaling_factor': 1.0,
     'position_size': 14,  # Dollar PnL per 1 spread point
-    'stop_loss': None,
-    'shutdown_on_stop_loss': True,
+    # 'stop_loss': None,
+    # 'shutdown_on_stop_loss': True,
 }
 
 # ---- Load Data ----
