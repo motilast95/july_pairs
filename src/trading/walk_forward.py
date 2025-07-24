@@ -49,7 +49,8 @@ def walk_forward(prices: pd.DataFrame, sector_tickers: Dict[str, list], config: 
             logger.debug(f"Processing window {window_idx + 1}/{total_windows}: {train_window.start} to {test_window.stop}")
             
             # Select pairs with risk validation
-            pairs = select_pairs(prices, sector_tickers, train_window)
+            adf_alpha = config.get('adf_alpha', 0.05)
+            pairs = select_pairs(prices, sector_tickers, train_window, adf_alpha=adf_alpha)
             valid_pairs = []
             
             for pair in pairs:

@@ -23,6 +23,7 @@ class TradingConfig:
     # Walk-forward parameters
     train_size: int = 504  # days
     test_size: int = 126   # days
+    adf_alpha: float = 0.05  # ADF significance level for spread stationarity
     
     # Signal generation parameters
     entry_z: float = 1.0
@@ -132,6 +133,7 @@ class TradingConfig:
             'tickers': self.tickers,
             'train_size': self.train_size,
             'test_size': self.test_size,
+            'adf_alpha': self.adf_alpha,
             'entry_z': self.entry_z,
             'exit_z': self.exit_z,
             'signal_method': self.signal_method,
@@ -176,6 +178,7 @@ def create_default_config() -> TradingConfig:
         tickers=all_tickers,
         train_size=504,
         test_size=126,
+        adf_alpha=0.05,
         entry_z=1.0,
         exit_z=0.25,
         signal_method='tiered',

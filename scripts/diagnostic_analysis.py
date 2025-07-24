@@ -89,6 +89,171 @@ def run_diagnostic_analysis():
         print(f"Weak pairs (p>0.02): {weak_pairs}")
     print()
     
+    # 2b. SPREAD STATIONARITY ANALYSIS (ADF on spread)
+    print("2b. SPREAD STATIONARITY ANALYSIS (ADF on spread)")
+    print("-" * 40)
+    from src.models.model_fitting import is_spread_stationary
+    stationary_pairs = []
+    for sector, tickers in sector_tickers.items():
+        sector_prices = prices[tickers].dropna(axis=1, how="any")
+        sector_pairs = list(itertools.combinations(sector_prices.columns, 2))
+        for t1, t2 in sector_pairs:
+            s1 = sector_prices[t1]
+            s2 = sector_prices[t2]
+            if len(s1) < 252:
+                continue
+            is_stat, pval, beta = is_spread_stationary(s1, s2)
+            if is_stat:
+                stationary_pairs.append((t1, t2, pval, beta))
+    print(f"Total stationary pairs: {len(stationary_pairs)} / {len(all_pairs)}")
+    
+    # 2c. ROLLING PAIR SELECTION QUALITY ANALYSIS (COINTEGRATION + COMPLEMENTARY METRICS)
+    print("2c. ROLLING PAIR SELECTION QUALITY ANALYSIS (COINTEGRATION + COMPLEMENTARY METRICS)")
+    print("-" * 40)
+    from src.models.model_fitting import is_spread_stationary
+    from statsmodels.tsa.stattools import coint
+    import statsmodels.api as sm
+    
+    def hurst_exponent(ts):
+        lags = range(2, 20)
+        tau = [np.sqrt(np.std(np.subtract(ts[lag:], ts[:-lag]))) for lag in lags]
+        poly = np.polyfit(np.log(lags), np.log(tau), 1)
+        return 2.0 * poly[0]
+    
+    def half_life(ts):
+        ts = np.asarray(ts)
+        lagged = np.roll(ts, 1)
+        lagged[0] = ts[0]
+        delta = ts - lagged
+        beta = np.polyfit(lagged[1:], delta[1:], 1)[0]
+        if beta == 0:
+            return np.inf
+        hl = -np.log(2) / beta
+        return np.abs(hl)
+    
+    def mean_crossings(ts):
+        mean = np.mean(ts)
+        crossings = np.where(np.diff(np.sign(ts - mean)))[0]
+        return len(crossings)
+    
+    train_size = config.train_size
+    test_size = config.test_size
+    min_obs = 252
+    hurst_thresh = 0.5
+    half_life_thresh = 50
+    mean_crossings_thresh = 2
+    
+    # Cointegration-selected pairs
+    hurst_results = []
+    half_life_results = []
+    crossings_results = []
+    # ADF-on-spread-selected pairs
+    adf_hurst_results = []
+    adf_half_life_results = []
+    adf_crossings_results = []
+    window_starts = range(0, len(prices) - train_size - test_size, test_size)
+    for start in window_starts:
+        sel_start = start
+        sel_end = start + train_size
+        test_start = sel_end
+        test_end = sel_end + test_size
+        sel_prices = prices.iloc[sel_start:sel_end]
+        test_prices = prices.iloc[test_start:test_end]
+        coint_pairs = []
+        adf_pairs = []
+        for sector, tickers in sector_tickers.items():
+            sector_sel = sel_prices[tickers].dropna(axis=1, how="any")
+            sector_pairs = list(itertools.combinations(sector_sel.columns, 2))
+            for t1, t2 in sector_pairs:
+                s1 = sector_sel[t1]
+                s2 = sector_sel[t2]
+                if len(s1) < min_obs:
+                    continue
+                # Cointegration
+                try:
+                    score, pvalue, _ = coint(s1, s2)
+                    if pvalue < config.cointegration_significance:
+                        X = sm.add_constant(s2)
+                        model = sm.OLS(s1, X).fit()
+                        beta = model.params[1]
+                        coint_pairs.append((t1, t2, beta))
+                except Exception:
+                    continue
+                # ADF on spread
+                is_stat, pval, beta = is_spread_stationary(s1, s2)
+                if is_stat:
+                    adf_pairs.append((t1, t2, beta))
+        # Test mean reversion in trading window for cointegration pairs
+        for t1, t2, beta in coint_pairs:
+            if t1 not in test_prices.columns or t2 not in test_prices.columns:
+                continue
+            s1 = test_prices[t1]
+            s2 = test_prices[t2]
+            spread = s1 - beta * s2
+            spread = spread.dropna()
+            if len(spread) < min_obs // 2:
+                continue
+            # Hurst
+            try:
+                h = hurst_exponent(spread.values)
+                hurst_results.append(h < hurst_thresh)
+            except Exception:
+                hurst_results.append(False)
+            # Half-life
+            try:
+                hl = half_life(spread.values)
+                half_life_results.append(hl < half_life_thresh)
+            except Exception:
+                half_life_results.append(False)
+            # Mean crossings
+            try:
+                mc = mean_crossings(spread.values)
+                crossings_results.append(mc > mean_crossings_thresh)
+            except Exception:
+                crossings_results.append(False)
+        # Test mean reversion in trading window for adf-on-spread pairs
+        for t1, t2, beta in adf_pairs:
+            if t1 not in test_prices.columns or t2 not in test_prices.columns:
+                continue
+            s1 = test_prices[t1]
+            s2 = test_prices[t2]
+            spread = s1 - beta * s2
+            spread = spread.dropna()
+            if len(spread) < min_obs // 2:
+                continue
+            # Hurst
+            try:
+                h = hurst_exponent(spread.values)
+                adf_hurst_results.append(h < hurst_thresh)
+            except Exception:
+                adf_hurst_results.append(False)
+            # Half-life
+            try:
+                hl = half_life(spread.values)
+                adf_half_life_results.append(hl < half_life_thresh)
+            except Exception:
+                adf_half_life_results.append(False)
+            # Mean crossings
+            try:
+                mc = mean_crossings(spread.values)
+                adf_crossings_results.append(mc > mean_crossings_thresh)
+            except Exception:
+                adf_crossings_results.append(False)
+    # Aggregate and print
+    def summarize_bool(results, label):
+        total = len(results)
+        true_count = sum(results)
+        frac = (true_count / total) if total > 0 else 0
+        print(f"{label}: {true_count}/{total} pairs ({frac:.1%}) met the criterion in trading windows.")
+    print("Cointegration-selected pairs:")
+    summarize_bool(hurst_results, "Hurst exponent < 0.5")
+    summarize_bool(half_life_results, "Half-life < 50 days")
+    summarize_bool(crossings_results, "Mean crossings > 2")
+    print("ADF-on-spread-selected pairs:")
+    summarize_bool(adf_hurst_results, "Hurst exponent < 0.5")
+    summarize_bool(adf_half_life_results, "Half-life < 50 days")
+    summarize_bool(adf_crossings_results, "Mean crossings > 2")
+    
     # 3. Model Fitting Analysis
     print("3. MODEL FITTING ANALYSIS")
     print("-" * 40)
@@ -105,8 +270,11 @@ def run_diagnostic_analysis():
         try:
             end_idx = len(prices) - 1
             start_idx = max(0, end_idx - 504)  # 2 years
-            window = slice(start_idx, end_idx)
-            
+            # Use datetime labels for slicing
+            start_label = prices.index[start_idx]
+            end_label = prices.index[end_idx]
+            window = slice(start_label, end_label)
+
             model_result = fit_spread((t1, t2), prices, window)
             if model_result:
                 fitted_models.append({

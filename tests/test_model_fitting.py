@@ -6,11 +6,22 @@ from src.models.model_fitting import fit_spread
 
 def test_fit_spread_basic():
     prices = pd.DataFrame({
+        'A': list(range(1, 36)),
+        'B': list(range(2, 37))
+    }, index=pd.date_range('2020-01-01', periods=35))
+    pair = ('A', 'B')
+    window = slice(prices.index[0], prices.index[-1])
+    result = fit_spread(pair, prices, window)
+    assert isinstance(result, dict)
+    assert 'beta' in result
+
+
+def test_fit_spread_insufficient_data():
+    prices = pd.DataFrame({
         'A': [1,2,3,4,5],
         'B': [2,3,4,5,6]
     }, index=pd.date_range('2020-01-01', periods=5))
     pair = ('A', 'B')
     window = slice(prices.index[0], prices.index[-1])
     result = fit_spread(pair, prices, window)
-    assert isinstance(result, dict)
-    assert 'beta' in result 
+    assert result is None 

@@ -4,6 +4,7 @@ import numpy as np
 import logging
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools.tools import add_constant
+from statsmodels.tsa.stattools import adfuller
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -78,3 +79,18 @@ def fit_spread(pair: Tuple[str, str], prices: pd.DataFrame, window: slice) -> Op
     except Exception as e:
         logger.error(f"Error fitting model for pair {pair}: {str(e)}")
         return None 
+
+def is_spread_stationary(series1, series2, regression=True, adf_alpha=0.05):
+    # Optionally estimate beta via regression
+    if regression:
+        import statsmodels.api as sm
+        X = sm.add_constant(series2)
+        model = sm.OLS(series1, X).fit()
+        beta = model.params.iloc[1]
+    else:
+        beta = 1.0
+
+    spread = series1 - beta * series2
+    adf_result = adfuller(spread.dropna())
+    pvalue = adf_result[1]
+    return pvalue < adf_alpha, pvalue, beta 

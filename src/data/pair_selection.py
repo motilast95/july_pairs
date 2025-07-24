@@ -1,12 +1,13 @@
 from typing import List, Tuple, Dict
 import pandas as pd
 import itertools
-from statsmodels.tsa.stattools import coint
-from config.screening import COINTEGRATION_SIGNIFICANCE
+#from statsmodels.tsa.stattools import coint
+#from config.screening import COINTEGRATION_SIGNIFICANCE
+from src.models.model_fitting import is_spread_stationary
 
-def select_pairs(prices: pd.DataFrame, sector_tickers: Dict[str, list], window: slice) -> List[Tuple[str, str]]:
+def select_pairs(prices: pd.DataFrame, sector_tickers: Dict[str, list], window: slice, adf_alpha: float = 0.05) -> List[Tuple[str, str]]:
     """
-    Select pairs of stocks that are cointegrated within the given window using the Engle-Granger test.
+    Select pairs of stocks whose spread is stationary (ADF test) within the given window.
     Returns a list of (ticker1, ticker2) tuples.
     Only considers pairs within the same sector.
     """
@@ -18,7 +19,7 @@ def select_pairs(prices: pd.DataFrame, sector_tickers: Dict[str, list], window: 
             series2 = sector_prices[t2]
             if len(series1) < 2 or len(series2) < 2:
                 continue
-            score, pvalue, _ = coint(series1, series2)
-            if pvalue < COINTEGRATION_SIGNIFICANCE:
+            is_stat, pvalue, beta = is_spread_stationary(series1, series2, adf_alpha=adf_alpha)
+            if is_stat:
                 selected_pairs.append((t1, t2))
     return selected_pairs 
