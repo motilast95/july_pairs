@@ -61,6 +61,18 @@ This directory contains comprehensive documentation for the pairs trading system
 
 **Best for**: Strategy evaluation, investment decisions, performance presentation
 
+### [VISUALIZATION_GUIDE.md](VISUALIZATION_GUIDE.md) - Strategy Visualization System
+**Purpose**: Complete guide to creating professional strategy visualizations  
+**Content**:
+- Interactive dashboard creation
+- Performance comparison charts
+- Trading activity analysis
+- Benchmark comparison tables
+- HTML summary reports
+- Best practices for showcasing
+
+**Best for**: Strategy showcasing, client presentations, performance reporting
+
 ## 📈 Progress and Development
 
 ### [progress/2025-07-27.md](progress/2025-07-27.md) - Development Progress Log
@@ -93,7 +105,8 @@ This directory contains comprehensive documentation for the pairs trading system
 ### For Strategy Evaluation
 1. Read [STRATEGY_ADVANTAGES.md](STRATEGY_ADVANTAGES.md) for comprehensive analysis
 2. Run benchmark comparisons with `--benchmark` flag
-3. Use standalone analysis script for detailed comparisons
+3. Create visualizations with `--visualize` flag
+4. Use standalone analysis script for detailed comparisons
 
 ## 📊 System Performance Summary
 
@@ -120,6 +133,11 @@ python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-m
 ### With Benchmark Comparison
 ```bash
 python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled --benchmark
+```
+
+### With Visualizations
+```bash
+python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled --benchmark --visualize
 ```
 
 ### Mid-Cap Experiment
