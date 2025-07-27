@@ -20,6 +20,7 @@ from src.data.data_loader import load_prices, load_sector_tickers
 from src.trading.walk_forward import walk_forward
 from src.analysis.portfolio_analysis import aggregate_portfolio_pnl, compute_portfolio_metrics
 from src.analysis.performance import print_performance_summary, export_performance_metrics, enable_performance_monitoring
+from src.analysis.benchmark_analysis import run_benchmark_analysis
 
 def setup_logging(level=logging.INFO):
     """Set up logging configuration."""
@@ -218,6 +219,36 @@ def run_backtest(args):
             logger.info(f"   Train/Test:       {config.train_size}/{config.test_size} days")
             logger.info("=" * 60)
             
+            # Run benchmark comparison if requested
+            if hasattr(args, 'benchmark') and args.benchmark:
+                logger.info("=" * 60)
+                logger.info("📊 RUNNING BENCHMARK COMPARISON")
+                logger.info("=" * 60)
+                
+                # Convert portfolio PnL to returns for comparison
+                strategy_returns = portfolio_pnl / config.initial_capital
+                
+                # Run benchmark analysis
+                benchmark_results = run_benchmark_analysis(
+                    strategy_returns=strategy_returns,
+                    universe_prices=prices,
+                    start_date=config.start_date,
+                    end_date=config.end_date,
+                    risk_free_rate=config.risk_free_rate
+                )
+                
+                if benchmark_results and 'report' in benchmark_results:
+                    logger.info(benchmark_results['report'])
+                    
+                    # Save benchmark results
+                    import json
+                    benchmark_file = "results/benchmark_comparison.json"
+                    with open(benchmark_file, 'w') as f:
+                        json.dump(benchmark_results['comparison'], f, indent=2, default=str)
+                    logger.info(f"Benchmark results saved to {benchmark_file}")
+                else:
+                    logger.warning("Benchmark analysis failed or returned no results")
+            
             # Print performance summary (only if monitoring is enabled)
             if hasattr(args, 'enable_performance') and args.enable_performance:
                 logger.info("=" * 60)
@@ -304,6 +335,10 @@ def main():
     # Performance monitoring
     backtest_parser.add_argument('--enable-performance', action='store_true', 
                                 help='Enable performance monitoring (slower but provides timing data)')
+    
+    # Benchmark comparison
+    backtest_parser.add_argument('--benchmark', action='store_true',
+                                help='Run benchmark comparison against market indices and ETFs')
     
     # Diagnostic command
     diagnostic_parser = subparsers.add_parser('diagnostic', help='Run diagnostic analysis')

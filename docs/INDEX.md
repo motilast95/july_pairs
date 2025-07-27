@@ -51,6 +51,16 @@ This directory contains comprehensive documentation for the pairs trading system
 
 **Best for**: Performance optimization, debugging, system tuning
 
+### [STRATEGY_ADVANTAGES.md](STRATEGY_ADVANTAGES.md) - Strategy Advantages & Market Performance
+**Purpose**: Comprehensive analysis of strategy advantages vs. market benchmarks  
+**Content**:
+- Risk-adjusted performance analysis
+- Benchmark comparison results
+- Strategic advantages and investment thesis
+- Target applications and use cases
+
+**Best for**: Strategy evaluation, investment decisions, performance presentation
+
 ## 📈 Progress and Development
 
 ### [progress/2025-07-27.md](progress/2025-07-27.md) - Development Progress Log
@@ -80,6 +90,11 @@ This directory contains comprehensive documentation for the pairs trading system
 2. Use [PERFORMANCE_MONITORING_USAGE.md](PERFORMANCE_MONITORING_USAGE.md) for monitoring
 3. Check [TECHNICAL_GUIDE.md](TECHNICAL_GUIDE.md) for optimization strategies
 
+### For Strategy Evaluation
+1. Read [STRATEGY_ADVANTAGES.md](STRATEGY_ADVANTAGES.md) for comprehensive analysis
+2. Run benchmark comparisons with `--benchmark` flag
+3. Use standalone analysis script for detailed comparisons
+
 ## 📊 System Performance Summary
 
 ### Default System (Mega-Cap Universe)
@@ -100,6 +115,11 @@ This directory contains comprehensive documentation for the pairs trading system
 ### Default System
 ```bash
 python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled
+```
+
+### With Benchmark Comparison
+```bash
+python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled --benchmark
 ```
 
 ### Mid-Cap Experiment

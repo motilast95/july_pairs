@@ -1,0 +1,141 @@
+{
+  "strategy": {
+    "total_return": 0.23986488307962528,
+    "annualized_return": 0.07429804776603577,
+    "volatility": 0.06296329757990804,
+    "sharpe_ratio": 0.8623761755350404,
+    "max_drawdown": -0.05930750606703632,
+    "win_rate": 0.26322751322751325,
+    "positive_days": "199",
+    "negative_days": "170",
+    "total_days": 756
+  },
+  "benchmarks": {
+    "IWM": {
+      "total_return": 0.39526380298127806,
+      "annualized_return": 0.06275867541206925,
+      "volatility": 0.2726593371860173,
+      "sharpe_ratio": 0.15682087345095339,
+      "max_drawdown": -0.41072366825348167,
+      "win_rate": 0.5170413343002176,
+      "positive_days": "713",
+      "negative_days": "664",
+      "total_days": 1379
+    },
+    "QQQ": {
+      "total_return": 1.6382763705911843,
+      "annualized_return": 0.19396759488588478,
+      "volatility": 0.2607754925985142,
+      "sharpe_ratio": 0.6671163503608928,
+      "max_drawdown": -0.35118713836139465,
+      "win_rate": 0.5591007976794778,
+      "positive_days": "771",
+      "negative_days": "607",
+      "total_days": 1379
+    },
+    "SPY": {
+      "total_return": 1.0635826231320462,
+      "annualized_return": 0.14154845458870335,
+      "volatility": 0.2144032298140662,
+      "sharpe_ratio": 0.566915221818776,
+      "max_drawdown": -0.33717268565971403,
+      "win_rate": 0.5503988397389412,
+      "positive_days": "759",
+      "negative_days": "618",
+      "total_days": 1379
+    },
+    "VTI": {
+      "total_return": 1.0007292416248594,
+      "annualized_return": 0.13511402554026075,
+      "volatility": 0.21957321785108883,
+      "sharpe_ratio": 0.524262597537416,
+      "max_drawdown": -0.35000292605193034,
+      "win_rate": 0.5474981870920957,
+      "positive_days": "755",
+      "negative_days": "619",
+      "total_days": 1379
+    },
+    "XLE": {
+      "total_return": 0.7734212773234883,
+      "annualized_return": 0.11037114458352382,
+      "volatility": 0.35923261165232273,
+      "sharpe_ratio": 0.2515672064622797,
+      "max_drawdown": -0.6060456595992133,
+      "win_rate": 0.5308194343727338,
+      "positive_days": "732",
+      "negative_days": "643",
+      "total_days": 1379
+    },
+    "XLF": {
+      "total_return": 0.8720979696944278,
+      "annualized_return": 0.12141310603160704,
+      "volatility": 0.26143663579546866,
+      "sharpe_ratio": 0.3879070189342024,
+      "max_drawdown": -0.4286252832896581,
+      "win_rate": 0.5228426395939086,
+      "positive_days": "721",
+      "negative_days": "645",
+      "total_days": 1379
+    },
+    "XLI": {
+      "total_return": 0.9427849434167406,
+      "annualized_return": 0.1290340949204658,
+      "volatility": 0.23262578396980135,
+      "sharpe_ratio": 0.46871027389904557,
+      "max_drawdown": -0.4233409510213616,
+      "win_rate": 0.5351704133430022,
+      "positive_days": "738",
+      "negative_days": "636",
+      "total_days": 1379
+    },
+    "XLK": {
+      "total_return": 1.8469689602196442,
+      "annualized_return": 0.210694049576583,
+      "volatility": 0.28633501085246166,
+      "sharpe_ratio": 0.6659823016712438,
+      "max_drawdown": -0.3355907139540298,
+      "win_rate": 0.546047860768673,
+      "positive_days": "753",
+      "negative_days": "625",
+      "total_days": 1379
+    },
+    "XLV": {
+      "total_return": 0.44151281220501537,
+      "annualized_return": 0.06911068808770682,
+      "volatility": 0.18434867283062437,
+      "sharpe_ratio": 0.2664010938273945,
+      "max_drawdown": -0.28404301425706013,
+      "win_rate": 0.5184916606236403,
+      "positive_days": "715",
+      "negative_days": "662",
+      "total_days": 1379
+    },
+    "XLY": {
+      "total_return": 0.7960560367343708,
+      "annualized_return": 0.11294755400400414,
+      "volatility": 0.26432594903804263,
+      "sharpe_ratio": 0.3516399140616604,
+      "max_drawdown": -0.39669564822135367,
+      "win_rate": 0.5395213923132705,
+      "positive_days": "744",
+      "negative_days": "632",
+      "total_days": 1379
+    }
+  },
+  "equal_weighted": {
+    "total_return": 1.253417673353784,
+    "annualized_return": 0.1600552812674847,
+    "volatility": 0.23329030006640444,
+    "sharpe_ratio": 0.6003476408046925,
+    "max_drawdown": -0.4056671141784478,
+    "win_rate": 0.536620739666425,
+    "positive_days": "740",
+    "negative_days": "639",
+    "total_days": 1379
+  },
+  "comparison_period": {
+    "start_date": "2021-12-31 00:00:00",
+    "end_date": "2025-01-03 00:00:00",
+    "total_days": 756
+  }
+}

@@ -1,0 +1,48 @@
+================================================================================
+PAIRS TRADING STRATEGY vs MARKET BENCHMARKS
+================================================================================
+
+📊 STRATEGY PERFORMANCE
+----------------------------------------
+Total Return:        0.2532 (25.32%)
+Annualized Return:   0.0578 (5.78%)
+Volatility:          0.0398 (3.98%)
+Sharpe Ratio:        0.949
+Max Drawdown:        -0.0492 (-4.92%)
+Win Rate:            0.047 (4.7%)
+
+📈 BENCHMARK COMPARISON
+----------------------------------------
+Benchmark       Return     Sharpe   Drawdown   Volatility  
+----------------------------------------
+NASDAQ-100 ETF     19.40%   0.67   -35.12%      26.08%
+Technology Sector ETF    21.07%   0.67   -33.56%      28.63%
+S&P 500 ETF        14.15%   0.57   -33.72%      21.44%
+Total Stock Market ETF    13.51%   0.52   -35.00%      21.96%
+Industrial Sector ETF    12.90%   0.47   -42.33%      23.26%
+Financial Sector ETF    12.14%   0.39   -42.86%      26.14%
+Consumer Discretionary ETF    11.29%   0.35   -39.67%      26.43%
+Healthcare Sector ETF     6.91%   0.27   -28.40%      18.43%
+Energy Sector ETF    11.04%   0.25   -60.60%      35.92%
+Russell 2000 ETF     6.28%   0.16   -41.07%      27.27%
+
+⚖️ EQUAL-WEIGHTED UNIVERSE COMPARISON
+----------------------------------------
+Equal-Weighted Return: 0.1601 (16.01%)
+Equal-Weighted Sharpe:  0.600
+Equal-Weighted Drawdown: -0.4057 (-40.57%)
+Sharpe Improvement:     +58.1%
+
+🎯 RISK-ADJUSTED PERFORMANCE SUMMARY
+----------------------------------------
+Strategy Sharpe Ratio: 0.949
+Best Benchmark Sharpe: 0.667
+✅ Strategy outperforms best benchmark by +42.2%
+
+📅 COMPARISON PERIOD
+----------------------------------------
+Start Date: 2022-03-29 00:00:00
+End Date:   2025-01-03 00:00:00
+Total Days: 1012
+
+================================================================================
