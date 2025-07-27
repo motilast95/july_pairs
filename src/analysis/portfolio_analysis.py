@@ -20,13 +20,13 @@ def aggregate_portfolio_pnl(results: List[Dict]) -> pd.Series:
     portfolio_pnl = pnl_df.sum(axis=1)
     return portfolio_pnl
 
-def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float = None) -> Dict:
+def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float = None, results: List[Dict] = None) -> Dict:
     """
     Compute performance metrics for the aggregated portfolio PnL.
     If initial_capital is provided, compute metrics based on returns (normalized), otherwise use raw PnL.
     
     IMPORTANT: This function now calculates metrics based on the actual trading period only,
-    filtering out only the initial training period (consecutive zero PnL days at the start).
+    starting from the first test window date (when strategy goes live) rather than first non-zero PnL day.
     """
     if len(portfolio_pnl) == 0:
         return {
@@ -35,17 +35,29 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
             'sharpe_ratio': 0.0,
             'max_drawdown': 0.0,
             'trading_days': 0,
-            'total_days': 0
+            'total_days': 0,
+            'first_test_date': None
         }
     
-    # Find the first non-zero PnL day (start of actual trading)
-    first_trading_day = None
-    for i, pnl in enumerate(portfolio_pnl):
-        if pnl != 0:
-            first_trading_day = i
-            break
+    # Find the first test window date (when strategy goes live)
+    first_test_date = None
+    if results and len(results) > 0:
+        # Get the earliest test_start date from all results
+        test_dates = []
+        for res in results:
+            if 'test_start' in res:
+                test_dates.append(res['test_start'])
+        if test_dates:
+            first_test_date = min(test_dates)
     
-    if first_trading_day is None:
+    if first_test_date is None:
+        # Fallback: find the first non-zero PnL day
+        for i, pnl in enumerate(portfolio_pnl):
+            if pnl != 0:
+                first_test_date = portfolio_pnl.index[i]
+                break
+    
+    if first_test_date is None:
         # No trading occurred at all
         return {
             'total_return': 0.0,
@@ -53,11 +65,12 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
             'sharpe_ratio': 0.0,
             'max_drawdown': 0.0,
             'trading_days': 0,
-            'total_days': len(portfolio_pnl)
+            'total_days': len(portfolio_pnl),
+            'first_test_date': None
         }
     
-    # Use the entire period from first trading day onwards (including zero PnL days)
-    trading_period_pnl = portfolio_pnl.iloc[first_trading_day:]
+    # Use the entire period from first test window date onwards (including zero PnL days)
+    trading_period_pnl = portfolio_pnl[portfolio_pnl.index >= first_test_date]
     
     # Calculate metrics based on the trading period (including zero PnL days)
     if initial_capital is not None:
@@ -89,6 +102,11 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
     else:
         annualized_return = float('nan')
     
+    # Calculate training days removed (days before first test window)
+    training_days_removed = 0
+    if first_test_date is not None:
+        training_days_removed = len(portfolio_pnl[portfolio_pnl.index < first_test_date])
+    
     return {
         'total_return': total_return,
         'annualized_return': annualized_return,
@@ -96,5 +114,6 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
         'max_drawdown': max_drawdown,
         'trading_days': len(trading_period_pnl),
         'total_days': len(portfolio_pnl),
-        'training_days_removed': first_trading_day
+        'training_days_removed': training_days_removed,
+        'first_test_date': first_test_date
     }

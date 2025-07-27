@@ -194,7 +194,7 @@ def run_backtest(args):
         if results:
             # Calculate portfolio metrics
             portfolio_pnl = aggregate_portfolio_pnl(results)
-            metrics = compute_portfolio_metrics(portfolio_pnl, config.initial_capital)
+            metrics = compute_portfolio_metrics(portfolio_pnl, config.initial_capital, results)
             
             # Print beautiful results summary
             logger.info("=" * 60)
@@ -219,6 +219,7 @@ def run_backtest(args):
             logger.info(f"   Train/Test:       {config.train_size}/{config.test_size} days")
             logger.info(f"   Trading Days:     {metrics.get('trading_days', 'N/A')} out of {metrics.get('total_days', 'N/A')} total days")
             logger.info(f"   Training Days Removed: {metrics.get('training_days_removed', 'N/A')} days")
+            logger.info(f"   First Test Date:  {metrics.get('first_test_date', 'N/A')}")
             logger.info("=" * 60)
             
             # Run benchmark comparison if requested
