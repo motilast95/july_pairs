@@ -218,6 +218,7 @@ def run_backtest(args):
             logger.info(f"   Date Range:       {config.start_date} to {config.end_date}")
             logger.info(f"   Train/Test:       {config.train_size}/{config.test_size} days")
             logger.info(f"   Trading Days:     {metrics.get('trading_days', 'N/A')} out of {metrics.get('total_days', 'N/A')} total days")
+            logger.info(f"   Training Days Removed: {metrics.get('training_days_removed', 'N/A')} days")
             logger.info("=" * 60)
             
             # Run benchmark comparison if requested

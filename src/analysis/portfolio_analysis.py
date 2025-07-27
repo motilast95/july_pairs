@@ -26,13 +26,27 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
     If initial_capital is provided, compute metrics based on returns (normalized), otherwise use raw PnL.
     
     IMPORTANT: This function now calculates metrics based on the actual trading period only,
-    filtering out periods with zero PnL (training/development periods).
+    filtering out only the initial training period (consecutive zero PnL days at the start).
     """
-    # Filter to actual trading period (remove periods with zero PnL)
-    trading_period_pnl = portfolio_pnl[portfolio_pnl != 0]
+    if len(portfolio_pnl) == 0:
+        return {
+            'total_return': 0.0,
+            'annualized_return': 0.0,
+            'sharpe_ratio': 0.0,
+            'max_drawdown': 0.0,
+            'trading_days': 0,
+            'total_days': 0
+        }
     
-    if len(trading_period_pnl) == 0:
-        # No trading occurred
+    # Find the first non-zero PnL day (start of actual trading)
+    first_trading_day = None
+    for i, pnl in enumerate(portfolio_pnl):
+        if pnl != 0:
+            first_trading_day = i
+            break
+    
+    if first_trading_day is None:
+        # No trading occurred at all
         return {
             'total_return': 0.0,
             'annualized_return': 0.0,
@@ -42,7 +56,10 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
             'total_days': len(portfolio_pnl)
         }
     
-    # Calculate metrics based on actual trading period
+    # Use the entire period from first trading day onwards (including zero PnL days)
+    trading_period_pnl = portfolio_pnl.iloc[first_trading_day:]
+    
+    # Calculate metrics based on the trading period (including zero PnL days)
     if initial_capital is not None:
         returns = trading_period_pnl / initial_capital
         total_return = (1 + returns).prod() - 1
@@ -78,5 +95,6 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
         'sharpe_ratio': sharpe,
         'max_drawdown': max_drawdown,
         'trading_days': len(trading_period_pnl),
-        'total_days': len(portfolio_pnl)
+        'total_days': len(portfolio_pnl),
+        'training_days_removed': first_trading_day
     }
