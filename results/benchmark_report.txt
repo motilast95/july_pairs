@@ -4,12 +4,12 @@ PAIRS TRADING STRATEGY vs MARKET BENCHMARKS
 
 📊 STRATEGY PERFORMANCE
 ----------------------------------------
-Total Return:        0.2532 (25.32%)
-Annualized Return:   0.0578 (5.78%)
-Volatility:          0.0398 (3.98%)
-Sharpe Ratio:        0.949
-Max Drawdown:        -0.0492 (-4.92%)
-Win Rate:            0.047 (4.7%)
+Total Return:        0.2402 (24.02%)
+Annualized Return:   0.0551 (5.51%)
+Volatility:          0.0527 (5.27%)
+Sharpe Ratio:        0.666
+Max Drawdown:        -0.0572 (-5.72%)
+Win Rate:            0.057 (5.7%)
 
 📈 BENCHMARK COMPARISON
 ----------------------------------------
@@ -31,13 +31,13 @@ Russell 2000 ETF     6.28%   0.16   -41.07%      27.27%
 Equal-Weighted Return: 0.1601 (16.01%)
 Equal-Weighted Sharpe:  0.600
 Equal-Weighted Drawdown: -0.4057 (-40.57%)
-Sharpe Improvement:     +58.1%
+Sharpe Improvement:     +10.9%
 
 🎯 RISK-ADJUSTED PERFORMANCE SUMMARY
 ----------------------------------------
-Strategy Sharpe Ratio: 0.949
+Strategy Sharpe Ratio: 0.666
 Best Benchmark Sharpe: 0.667
-✅ Strategy outperforms best benchmark by +42.2%
+❌ Strategy underperforms best benchmark by +0.2%
 
 📅 COMPARISON PERIOD
 ----------------------------------------

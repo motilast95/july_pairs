@@ -109,11 +109,25 @@ class BenchmarkAnalyzer:
         if returns.empty:
             return {}
         
-        # Basic metrics
+        # Basic metrics - using same calculation as main system
         total_return = (1 + returns).prod() - 1
-        annualized_return = (1 + total_return) ** (252 / len(returns)) - 1
+        
+        # Calculate annualized return based on actual trading period
+        if len(returns) > 0:
+            start_date = returns.index[0]
+            end_date = returns.index[-1]
+            years = (end_date - start_date).days / 365.25
+            
+            if years > 0:
+                annualized_return = (1 + total_return) ** (1 / years) - 1
+            else:
+                annualized_return = 0.0
+        else:
+            annualized_return = 0.0
+        
+        # Calculate Sharpe ratio using same method as main system
         volatility = returns.std() * np.sqrt(252)
-        sharpe_ratio = (annualized_return - risk_free_rate) / volatility if volatility > 0 else 0
+        sharpe_ratio = returns.mean() / returns.std() * np.sqrt(252) if returns.std() > 0 else 0
         
         # Drawdown calculation
         cumulative_returns = (1 + returns).cumprod()

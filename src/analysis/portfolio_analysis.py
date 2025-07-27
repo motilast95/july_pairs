@@ -24,22 +24,40 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
     """
     Compute performance metrics for the aggregated portfolio PnL.
     If initial_capital is provided, compute metrics based on returns (normalized), otherwise use raw PnL.
+    
+    IMPORTANT: This function now calculates metrics based on the actual trading period only,
+    filtering out periods with zero PnL (training/development periods).
     """
+    # Filter to actual trading period (remove periods with zero PnL)
+    trading_period_pnl = portfolio_pnl[portfolio_pnl != 0]
+    
+    if len(trading_period_pnl) == 0:
+        # No trading occurred
+        return {
+            'total_return': 0.0,
+            'annualized_return': 0.0,
+            'sharpe_ratio': 0.0,
+            'max_drawdown': 0.0,
+            'trading_days': 0,
+            'total_days': len(portfolio_pnl)
+        }
+    
+    # Calculate metrics based on actual trading period
     if initial_capital is not None:
-        returns = portfolio_pnl / initial_capital
+        returns = trading_period_pnl / initial_capital
         total_return = (1 + returns).prod() - 1
         sharpe = returns.mean() / returns.std() * (252 ** 0.5) if returns.std() > 0 else float('nan')
         max_drawdown = (returns.cumsum().cummax() - returns.cumsum()).max()
     else:
-        total_return = portfolio_pnl.sum()
-        sharpe = portfolio_pnl.mean() / portfolio_pnl.std() * (252 ** 0.5) if portfolio_pnl.std() > 0 else float('nan')
-        max_drawdown = (portfolio_pnl.cumsum().cummax() - portfolio_pnl.cumsum()).max()
+        total_return = trading_period_pnl.sum()
+        sharpe = trading_period_pnl.mean() / trading_period_pnl.std() * (252 ** 0.5) if trading_period_pnl.std() > 0 else float('nan')
+        max_drawdown = (trading_period_pnl.cumsum().cummax() - trading_period_pnl.cumsum()).max()
     
-    # Calculate annualized return
-    if len(portfolio_pnl) > 0:
-        # Calculate the number of years in the data
-        start_date = portfolio_pnl.index[0]
-        end_date = portfolio_pnl.index[-1]
+    # Calculate annualized return based on actual trading period
+    if len(trading_period_pnl) > 0:
+        # Calculate the number of years in the trading data
+        start_date = trading_period_pnl.index[0]
+        end_date = trading_period_pnl.index[-1]
         years = (end_date - start_date).days / 365.25
         
         if years > 0:
@@ -59,4 +77,6 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
         'annualized_return': annualized_return,
         'sharpe_ratio': sharpe,
         'max_drawdown': max_drawdown,
+        'trading_days': len(trading_period_pnl),
+        'total_days': len(portfolio_pnl)
     }
