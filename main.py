@@ -21,7 +21,6 @@ from src.trading.walk_forward import walk_forward
 from src.analysis.portfolio_analysis import aggregate_portfolio_pnl, compute_portfolio_metrics
 from src.analysis.performance import print_performance_summary, export_performance_metrics, enable_performance_monitoring
 from src.analysis.benchmark_analysis import run_benchmark_analysis
-from src.analysis.visualization import create_strategy_visualizations
 
 def setup_logging(level=logging.INFO):
     """Set up logging configuration."""
@@ -254,33 +253,7 @@ def run_backtest(args):
                     logger.warning("Benchmark analysis failed or returned no results")
              
             # Create visualizations if requested
-            if hasattr(args, 'visualize') and args.visualize:
-                logger.info("=" * 60)
-                logger.info("📊 CREATING STRATEGY VISUALIZATIONS")
-                logger.info("=" * 60)
-                
-                # Load trades data
-                import pandas as pd
-                trades_file = "results/data/trades_data.csv"
-                trades_data = pd.DataFrame()
-                if os.path.exists(trades_file):
-                    trades_data = pd.read_csv(trades_file)
-                
-                # Create visualizations
-                viz_files = create_strategy_visualizations(
-                    portfolio_pnl=portfolio_pnl,
-                    benchmark_data=benchmark_results['comparison'] if benchmark_results else None,
-                    trades_data=trades_data,
-                    metrics=metrics,
-                    output_dir="results"
-                )
-                
-                if viz_files:
-                    logger.info("✅ Visualization files created:")
-                    for viz_type, file_path in viz_files.items():
-                        logger.info(f"   📈 {viz_type}: {file_path}")
-                else:
-                    logger.warning("No visualization files were created")
+
             
             # Print performance summary (only if monitoring is enabled)
             if hasattr(args, 'enable_performance') and args.enable_performance:
@@ -373,9 +346,7 @@ def main():
     backtest_parser.add_argument('--benchmark', action='store_true',
                                 help='Run benchmark comparison against market indices and ETFs')
     
-    # Visualization
-    backtest_parser.add_argument('--visualize', action='store_true',
-                                help='Create comprehensive strategy visualizations')
+
     
     # Diagnostic command
     diagnostic_parser = subparsers.add_parser('diagnostic', help='Run diagnostic analysis')
