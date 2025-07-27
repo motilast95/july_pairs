@@ -24,7 +24,14 @@ class PortfolioRiskManager:
         self.max_portfolio_exposure = config.get('max_portfolio_exposure', 0.5)
         self.volatility_lookback = config.get('volatility_lookback', 252)
         self.volatility_target = config.get('volatility_target', 0.15)  # 15% annual volatility target
-        
+        # New toggles and thresholds
+        self.enable_volatility_scaling = config.get('enable_volatility_scaling', True)
+        self.enable_position_limits = config.get('enable_position_limits', True)
+        self.enable_pair_validation = config.get('enable_pair_validation', True)
+        self.max_pair_volatility = config.get('max_pair_volatility', 0.5)
+        self.max_daily_move = config.get('max_daily_move', 0.2)
+        self.min_data_days = config.get('min_data_days', 60)
+
     def calculate_volatility_scaled_position(
         self, 
         position: float, 
@@ -33,30 +40,16 @@ class PortfolioRiskManager:
     ) -> float:
         """
         Scale position based on volatility.
-        
-        Args:
-            position: Raw position size
-            pair_volatility: Volatility of the pair
-            portfolio_volatility: Current portfolio volatility
-            
-        Returns:
-            Scaled position size
         """
+        if not self.enable_volatility_scaling:
+            return position
         if pair_volatility == 0:
             return 0.0
-        
-        # Volatility scaling factor
         vol_scale = min(1.0, self.volatility_target / pair_volatility)
-        
-        # Portfolio-level volatility scaling
         portfolio_scale = min(1.0, self.volatility_target / portfolio_volatility) if portfolio_volatility > 0 else 1.0
-        
-        # Apply both scaling factors
         scaled_position = position * vol_scale * portfolio_scale
-        
-        # Apply maximum position limit
-        scaled_position = np.clip(scaled_position, -self.max_position_per_pair, self.max_position_per_pair)
-        
+        if self.enable_position_limits:
+            scaled_position = np.clip(scaled_position, -self.max_position_per_pair, self.max_position_per_pair)
         return scaled_position
     
     def calculate_portfolio_volatility(
@@ -95,31 +88,18 @@ class PortfolioRiskManager:
     ) -> pd.DataFrame:
         """
         Apply position limits to ensure portfolio constraints are met.
-        
-        Args:
-            positions: DataFrame of positions (pairs x dates)
-            current_exposure: Current portfolio exposure
-            
-        Returns:
-            DataFrame of constrained positions
         """
-        constrained_positions = positions.copy()
-        
-        # Calculate total exposure
+        if not self.enable_position_limits:
+            return positions
         total_exposure = positions.abs().sum(axis=1)
-        
-        # Find periods where exposure exceeds limit
-        excess_mask = total_exposure > self.max_portfolio_exposure
-        
-        if excess_mask.any():
-            logger.warning(f"Portfolio exposure limit exceeded on {excess_mask.sum()} days")
-            
-            # Scale down positions proportionally
-            for idx in positions.index[excess_mask]:
-                scale_factor = self.max_portfolio_exposure / total_exposure[idx]
-                constrained_positions.loc[idx] *= scale_factor
-        
-        return constrained_positions
+        max_allowed_exposure = self.max_portfolio_exposure
+        scaling_factor = np.where(
+            total_exposure > max_allowed_exposure,
+            max_allowed_exposure / total_exposure,
+            1.0
+        )
+        adjusted_positions = positions * scaling_factor[:, np.newaxis]
+        return adjusted_positions
     
     def calculate_correlation_penalty(
         self, 
@@ -186,39 +166,25 @@ class PortfolioRiskManager:
     ) -> bool:
         """
         Validate if a pair meets risk criteria.
-        
-        Args:
-            pair: Pair to validate
-            prices: Price data
-            window: Time window for validation
-            
-        Returns:
-            True if pair passes risk validation
         """
+        if not self.enable_pair_validation:
+            return True
         try:
             x, y = pair
             pair_prices = prices.loc[window, [x, y]].dropna()
-            
-            if len(pair_prices) < 60:  # Minimum 60 days
+            if len(pair_prices) < self.min_data_days:
+                logger.debug(f"Pair {pair} rejected: insufficient data ({len(pair_prices)} days < {self.min_data_days})")
                 return False
-            
-            # Calculate spread volatility
             spread = pair_prices[x] - pair_prices[y]
             spread_vol = spread.pct_change().std() * np.sqrt(252)
-            
-            # Reject pairs with excessive volatility
-            if spread_vol > 0.5:  # 50% annualized volatility threshold
-                logger.debug(f"Pair {pair} rejected: high volatility {spread_vol:.2%}")
+            if spread_vol > self.max_pair_volatility:
+                logger.debug(f"Pair {pair} rejected: high volatility {spread_vol:.2%} > {self.max_pair_volatility:.2%}")
                 return False
-            
-            # Check for extreme price movements
             price_changes = pair_prices.pct_change().abs()
-            if price_changes.max().max() > 0.2:  # 20% daily move threshold
-                logger.debug(f"Pair {pair} rejected: extreme price movements")
+            if price_changes.max().max() > self.max_daily_move:
+                logger.debug(f"Pair {pair} rejected: extreme price movements {price_changes.max().max():.2%} > {self.max_daily_move:.2%}")
                 return False
-            
             return True
-            
         except Exception as e:
             logger.warning(f"Error validating pair {pair}: {e}")
             return False

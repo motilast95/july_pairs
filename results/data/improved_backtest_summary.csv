@@ -1,2 +1,0 @@
-runtime_seconds,start_date,end_date,signal_method,transaction_cost_bps,total_return,sharpe_ratio,max_drawdown,total_trades,win_rate,profit_factor
-19.806354761123657,2022-01-01,2024-06-30,tiered,5.0,-111.88840913994125,-0.7072738524360191,-4.476902976486339,22,0.5,0.31153226654969624

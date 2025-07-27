@@ -20,6 +20,9 @@ class TradingConfig:
     end_date: str
     tickers: List[str]
     
+    # Universe selection
+    universe: str = 'mega_cap'  # 'mega_cap', 'mid_cap', 'custom' (defaults to 60-stock Yahoo Finance system)
+    
     # Walk-forward parameters
     train_size: int = 504  # days
     test_size: int = 126   # days
@@ -41,12 +44,22 @@ class TradingConfig:
     max_portfolio_exposure: float = 0.5  # Maximum portfolio exposure (0.5 = 50%)
     volatility_lookback: int = 252  # Days for volatility calculation
     volatility_target: float = 0.15  # Target annual volatility (15%)
-    
+    # Configurable risk management toggles and thresholds
+    enable_volatility_scaling: bool = True
+    enable_position_limits: bool = True
+    enable_pair_validation: bool = True
+    max_pair_volatility: float = 0.5  # 50% annualized volatility
+    max_daily_move: float = 0.2  # 20% daily move
+    min_data_days: int = 60  # Minimum days of data
     # Transaction costs
     transaction_cost_bps: float = 5.0  # Transaction cost in basis points (0.05%)
     
     # Cointegration parameters
     cointegration_significance: float = 0.05
+    
+    # Fast pair selection parameters
+    distance_threshold: float = 0.1  # Distance threshold for pre-screening (lower = more similar)
+    pair_selection_method: str = 'fast'  # 'original', 'fast', 'ultra_fast'
     
     # Performance calculation
     risk_free_rate: float = 0.02  # Annual risk-free rate for Sharpe calculation
@@ -69,6 +82,11 @@ class TradingConfig:
             datetime.strptime(self.end_date, '%Y-%m-%d')
         except ValueError:
             errors.append("start_date and end_date must be in 'YYYY-MM-DD' format")
+        
+        # Universe validation
+        valid_universes = ['mega_cap', 'mid_cap', 'custom']
+        if self.universe not in valid_universes:
+            errors.append(f"universe must be one of {valid_universes}")
         
         # Size validation
         if self.train_size <= 0:
@@ -131,6 +149,7 @@ class TradingConfig:
             'start_date': self.start_date,
             'end_date': self.end_date,
             'tickers': self.tickers,
+            'universe': self.universe,
             'train_size': self.train_size,
             'test_size': self.test_size,
             'adf_alpha': self.adf_alpha,
@@ -145,8 +164,16 @@ class TradingConfig:
             'max_portfolio_exposure': self.max_portfolio_exposure,
             'volatility_lookback': self.volatility_lookback,
             'volatility_target': self.volatility_target,
+            'enable_volatility_scaling': self.enable_volatility_scaling,
+            'enable_position_limits': self.enable_position_limits,
+            'enable_pair_validation': self.enable_pair_validation,
+            'max_pair_volatility': self.max_pair_volatility,
+            'max_daily_move': self.max_daily_move,
+            'min_data_days': self.min_data_days,
             'transaction_cost_bps': self.transaction_cost_bps,
             'cointegration_significance': self.cointegration_significance,
+            'distance_threshold': self.distance_threshold,
+            'pair_selection_method': self.pair_selection_method,
             'risk_free_rate': self.risk_free_rate,
             'initial_capital': self.initial_capital
         }
@@ -184,9 +211,9 @@ def create_default_config() -> TradingConfig:
         signal_method='static',
         rolling_window=60,
         scaling_factor=1.0,
-        position_size=1.0,  # Simplified position sizing
-        max_position_per_pair=0.0,  # Disable position limits
-        max_portfolio_exposure=0.0,  # Disable portfolio exposure limits
+        position_size=100.0,  # More reasonable position sizing for better returns
+        max_position_per_pair=999999.0,  # Very high position limit (effectively no limit)
+        max_portfolio_exposure=1.0,  # 100% portfolio exposure (effectively no limit)
         initial_capital=100000,
         transaction_cost_bps=1.0
     ) 

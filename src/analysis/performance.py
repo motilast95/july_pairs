@@ -16,6 +16,25 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+# Global flag to enable/disable performance monitoring
+PERFORMANCE_MONITORING_ENABLED = False
+
+def enable_performance_monitoring():
+    """Enable performance monitoring globally."""
+    global PERFORMANCE_MONITORING_ENABLED
+    PERFORMANCE_MONITORING_ENABLED = True
+    logger.info("Performance monitoring enabled")
+
+def disable_performance_monitoring():
+    """Disable performance monitoring globally."""
+    global PERFORMANCE_MONITORING_ENABLED
+    PERFORMANCE_MONITORING_ENABLED = False
+    logger.info("Performance monitoring disabled")
+
+def is_performance_monitoring_enabled() -> bool:
+    """Check if performance monitoring is enabled."""
+    return PERFORMANCE_MONITORING_ENABLED
+
 @dataclass
 class PerformanceMetrics:
     """Container for performance metrics"""
@@ -76,7 +95,7 @@ class PerformanceMonitor:
             self.logger.warning(f"Failed to get peak memory usage: {e}")
             return 0.0
     
-    def time_function(self, func_name: str, log_level: str = "INFO"):
+    def time_function(self, func_name: str, log_level: str = "DEBUG"):
         """
         Decorator to time function execution and track memory usage.
         
@@ -87,6 +106,10 @@ class PerformanceMonitor:
         def decorator(func: Callable) -> Callable:
             @functools.wraps(func)
             def wrapper(*args, **kwargs) -> Any:
+                # Skip timing if performance monitoring is disabled
+                if not PERFORMANCE_MONITORING_ENABLED:
+                    return func(*args, **kwargs)
+                
                 # Initialize tracking
                 if func_name not in self.timings:
                     self.timings[func_name] = []
@@ -100,70 +123,65 @@ class PerformanceMonitor:
                     result = func(*args, **kwargs)
                     
                     # Calculate metrics
-                    end_time = time.time()
-                    execution_time = end_time - start_time
+                    execution_time = time.time() - start_time
                     memory_after = self._get_memory_usage()
                     memory_used = memory_after - memory_before
                     memory_peak = self._get_peak_memory()
                     
-                    # Create metrics object
+                    # Store metrics
                     metrics = PerformanceMetrics(
                         function_name=func_name,
                         execution_time=execution_time,
                         memory_used_mb=memory_used,
                         memory_peak_mb=memory_peak
                     )
-                    
-                    # Store metrics
                     self.timings[func_name].append(metrics)
                     
-                    # Log performance
-                    log_message = f"⏱️ {func_name}: {execution_time:.4f}s"
-                    if self.enable_memory_tracking and self.psutil_available:
-                        log_message += f", Memory: {memory_used:+.2f}MB (Peak: {memory_peak:.2f}MB)"
-                    
+                    # Log performance (optional) - only log at DEBUG level by default
                     if log_level.upper() == "DEBUG":
-                        self.logger.debug(log_message)
-                    else:
-                        self.logger.info(log_message)
+                        self.logger.debug(f"{func_name}: {execution_time:.4f}s, Memory: {memory_used:.2f}MB")
+                    # Don't log at INFO level to avoid cluttering output
                     
                     return result
                     
                 except Exception as e:
-                    # Log error but still track timing
-                    end_time = time.time()
-                    execution_time = end_time - start_time
-                    self.logger.error(f"❌ {func_name} failed after {execution_time:.4f}s: {e}")
+                    # Still track timing even if function fails
+                    execution_time = time.time() - start_time
+                    self.logger.error(f"{func_name} failed after {execution_time:.4f}s: {e}")
                     raise
             
             return wrapper
         return decorator
     
-    def time_block(self, block_name: str, log_level: str = "INFO"):
+    def time_block(self, block_name: str, log_level: str = "DEBUG"):
         """
         Context manager for timing code blocks.
         
-        Usage:
-            with monitor.time_block("data_processing"):
-                # code to time
-                pass
+        Args:
+            block_name: Name to use for tracking this block
+            log_level: Logging level for performance messages
         """
         class TimeBlock:
             def __init__(self, monitor, name, log_level):
                 self.monitor = monitor
                 self.name = name
                 self.log_level = log_level
-                self.start_time = None
-                self.memory_before = None
             
             def __enter__(self):
-                self.start_time = time.time()
+                # Skip timing if performance monitoring is disabled
+                if not PERFORMANCE_MONITORING_ENABLED:
+                    return self
+                
                 self.memory_before = self.monitor._get_memory_usage()
+                self.start_time = time.time()
                 return self
             
             def __exit__(self, exc_type, exc_val, exc_tb):
-                end_time = time.time()
-                execution_time = end_time - self.start_time
+                # Skip timing if performance monitoring is disabled
+                if not PERFORMANCE_MONITORING_ENABLED:
+                    return
+                
+                execution_time = time.time() - self.start_time
                 memory_after = self.monitor._get_memory_usage()
                 memory_used = memory_after - self.memory_before
                 memory_peak = self.monitor._get_peak_memory()
@@ -180,15 +198,10 @@ class PerformanceMonitor:
                 )
                 self.monitor.timings[self.name].append(metrics)
                 
-                # Log performance
-                log_message = f"⏱️ {self.name}: {execution_time:.4f}s"
-                if self.monitor.enable_memory_tracking and self.monitor.psutil_available:
-                    log_message += f", Memory: {memory_used:+.2f}MB (Peak: {memory_peak:.2f}MB)"
-                
+                # Log performance - only log at DEBUG level by default
                 if self.log_level.upper() == "DEBUG":
-                    self.monitor.logger.debug(log_message)
-                else:
-                    self.monitor.logger.info(log_message)
+                    self.monitor.logger.debug(f"{self.name}: {execution_time:.4f}s, Memory: {memory_used:.2f}MB")
+                # Don't log at INFO level to avoid cluttering output
         
         return TimeBlock(self, block_name, log_level)
     
@@ -294,22 +307,31 @@ class PerformanceMonitor:
 performance_monitor = PerformanceMonitor()
 
 # Convenience functions for easy usage
-def time_function(func_name: str, log_level: str = "INFO"):
+def time_function(func_name: str, log_level: str = "DEBUG"):
     """Convenience decorator using global monitor."""
     return performance_monitor.time_function(func_name, log_level)
 
-def time_block(block_name: str, log_level: str = "INFO"):
+def time_block(block_name: str, log_level: str = "DEBUG"):
     """Convenience context manager using global monitor."""
     return performance_monitor.time_block(block_name, log_level)
 
 def get_performance_summary() -> Dict[str, Dict[str, float]]:
     """Get performance summary from global monitor."""
+    if not PERFORMANCE_MONITORING_ENABLED:
+        logger.info("Performance monitoring is disabled. Enable it first with enable_performance_monitoring().")
+        return {}
     return performance_monitor.get_summary()
 
 def print_performance_summary(sort_by: str = 'total_time'):
     """Print performance summary from global monitor."""
+    if not PERFORMANCE_MONITORING_ENABLED:
+        logger.info("Performance monitoring is disabled. Enable it first with enable_performance_monitoring().")
+        return
     performance_monitor.print_summary(sort_by)
 
 def export_performance_metrics(filename: str = "performance_metrics.csv"):
     """Export performance metrics from global monitor."""
+    if not PERFORMANCE_MONITORING_ENABLED:
+        logger.info("Performance monitoring is disabled. Enable it first with enable_performance_monitoring().")
+        return
     performance_monitor.export_to_csv(filename) 

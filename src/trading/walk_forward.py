@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List
 import logging
-from src.data.pair_selection import select_pairs
+from src.data.pair_selection import select_pairs, select_pairs_fast, select_pairs_ultra_fast
 from src.models.model_fitting import fit_spread
 from src.models.signal_generation import generate_signals, generate_rolling_signals, generate_rolling_scaled_signals, generate_rolling_stepwise_signals, generate_rolling_stepwise_scaled_signals, generate_tiered_signals
 from src.trading.backtest import run_backtest, compute_performance_metrics
@@ -49,18 +49,39 @@ def walk_forward(prices: pd.DataFrame, sector_tickers: Dict[str, list], config: 
 
             logger.debug(f"Processing window {window_idx + 1}/{total_windows}: {train_window.start} to {test_window.stop}")
 
-            # Select pairs with risk validation
+            # Select pairs with risk validation (using configurable pair selection method)
             adf_alpha = config.get('adf_alpha', 0.05)
-            pairs = select_pairs(prices, sector_tickers, train_window, adf_alpha=adf_alpha)
+            distance_threshold = config.get('distance_threshold', 0.1)
+            pair_selection_method = config.get('pair_selection_method', 'fast')
+            
+            # Choose pair selection method
+            if pair_selection_method == 'original':
+                pairs = select_pairs(prices, sector_tickers, train_window, adf_alpha=adf_alpha)
+            elif pair_selection_method == 'fast':
+                pairs = select_pairs_fast(prices, sector_tickers, train_window, adf_alpha=adf_alpha, distance_threshold=distance_threshold)
+            elif pair_selection_method == 'ultra_fast':
+                pairs = select_pairs_ultra_fast(prices, sector_tickers, train_window, distance_threshold=distance_threshold)
+            else:
+                # Default to fast method
+                pairs = select_pairs_fast(prices, sector_tickers, train_window, adf_alpha=adf_alpha, distance_threshold=distance_threshold)
+            
             valid_pairs = []
 
+            # Check if risk management is enabled
+            risk_management_enabled = config.get('enable_pair_validation', True)
+            
             for pair in pairs:
                 if risk_manager.validate_pair_risk(pair, prices, train_window):
                     valid_pairs.append(pair)
                 else:
-                    logger.debug(f"Pair {pair} failed risk validation")
+                    if risk_management_enabled:
+                        logger.debug(f"Pair {pair} failed risk validation")
 
-            logger.info(f"Window {window_idx + 1}: {len(valid_pairs)}/{len(pairs)} pairs passed risk validation")
+            # Only log risk validation results if risk management is enabled
+            if risk_management_enabled:
+                logger.info(f"Window {window_idx + 1}: {len(valid_pairs)}/{len(pairs)} pairs passed risk validation")
+            else:
+                logger.info(f"Window {window_idx + 1}: {len(valid_pairs)} pairs selected (risk validation disabled)")
 
             for pair in valid_pairs:
                 try:

@@ -34,8 +34,29 @@ def compute_portfolio_metrics(portfolio_pnl: pd.Series, initial_capital: float =
         total_return = portfolio_pnl.sum()
         sharpe = portfolio_pnl.mean() / portfolio_pnl.std() * (252 ** 0.5) if portfolio_pnl.std() > 0 else float('nan')
         max_drawdown = (portfolio_pnl.cumsum().cummax() - portfolio_pnl.cumsum()).max()
+    
+    # Calculate annualized return
+    if len(portfolio_pnl) > 0:
+        # Calculate the number of years in the data
+        start_date = portfolio_pnl.index[0]
+        end_date = portfolio_pnl.index[-1]
+        years = (end_date - start_date).days / 365.25
+        
+        if years > 0:
+            if initial_capital is not None:
+                # For return-based calculation
+                annualized_return = (1 + total_return) ** (1 / years) - 1
+            else:
+                # For PnL-based calculation, assume initial capital of 1
+                annualized_return = (1 + total_return) ** (1 / years) - 1
+        else:
+            annualized_return = float('nan')
+    else:
+        annualized_return = float('nan')
+    
     return {
         'total_return': total_return,
+        'annualized_return': annualized_return,
         'sharpe_ratio': sharpe,
         'max_drawdown': max_drawdown,
     }
