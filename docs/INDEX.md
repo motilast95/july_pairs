@@ -85,6 +85,17 @@ This directory contains comprehensive documentation for the pairs trading system
 
 **Best for**: Understanding system development, historical context
 
+### [PROGRESS_REPORT.md](PROGRESS_REPORT.md) - Current System Status & Achievements
+**Purpose**: Latest progress report with performance metrics and system status  
+**Content**:
+- Executive summary and key achievements
+- Performance metrics (1.170 Sharpe ratio, 44.2% outperformance)
+- Technical improvements and optimizations
+- Production readiness assessment
+- Risk considerations and next steps
+
+**Best for**: Stakeholder updates, performance review, deployment planning
+
 ## 🎯 Quick Navigation
 
 ### For New Users
@@ -105,16 +116,16 @@ This directory contains comprehensive documentation for the pairs trading system
 ### For Strategy Evaluation
 1. Read [STRATEGY_ADVANTAGES.md](STRATEGY_ADVANTAGES.md) for comprehensive analysis
 2. Run benchmark comparisons with `--benchmark` flag
-3. Create visualizations with `--visualize` flag
-4. Use standalone analysis script for detailed comparisons
+3. Use standalone analysis script for detailed comparisons
 
 ## 📊 System Performance Summary
 
 ### Default System (Mega-Cap Universe)
-- **Total Return**: 25.04% over 5.5 years (2020-2025)
-- **Sharpe Ratio**: 1.266 (excellent risk-adjusted returns)
-- **Max Drawdown**: 7.38% (manageable risk)
-- **Annualized Return**: 7.71%
+- **Total Return**: 23.99% over 5.5 years (2020-2025)
+- **Sharpe Ratio**: 1.170 (excellent risk-adjusted returns)
+- **Max Drawdown**: 6.07% (manageable risk)
+- **Annualized Return**: 7.41%
+- **Benchmark Outperformance**: +44.2% vs best benchmark
 
 ### Key Features
 - **60 Stocks**: 6 sectors × 10 stocks each
@@ -135,10 +146,7 @@ python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-m
 python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled --benchmark
 ```
 
-### With Visualizations
-```bash
-python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled --benchmark --visualize
-```
+
 
 ### Mid-Cap Experiment
 ```bash
