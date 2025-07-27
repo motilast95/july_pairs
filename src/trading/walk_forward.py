@@ -7,10 +7,12 @@ from src.models.model_fitting import fit_spread
 from src.models.signal_generation import generate_signals, generate_rolling_signals, generate_rolling_scaled_signals, generate_rolling_stepwise_signals, generate_rolling_stepwise_scaled_signals, generate_tiered_signals
 from src.trading.backtest import run_backtest, compute_performance_metrics
 from src.trading.risk_management import PortfolioRiskManager
+from src.analysis.performance import time_function, time_block, print_performance_summary, export_performance_metrics
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
+@time_function("walk_forward_analysis")
 def walk_forward(prices: pd.DataFrame, sector_tickers: Dict[str, list], config: Dict):
     """
     Run walk-forward analysis with enhanced risk management and error handling.

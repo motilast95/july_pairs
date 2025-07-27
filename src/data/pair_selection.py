@@ -4,7 +4,9 @@ import itertools
 #from statsmodels.tsa.stattools import coint
 #from config.screening import COINTEGRATION_SIGNIFICANCE
 from src.models.model_fitting import is_spread_stationary
+from src.analysis.performance import time_function
 
+@time_function("pair_selection")
 def select_pairs(prices: pd.DataFrame, sector_tickers: Dict[str, list], window: slice, adf_alpha: float = 0.05) -> List[Tuple[str, str]]:
     """
     Select pairs of stocks whose spread is stationary (ADF test) within the given window.

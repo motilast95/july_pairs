@@ -8,7 +8,20 @@ This module contains:
 """
 
 from .portfolio_analysis import aggregate_portfolio_pnl, compute_portfolio_metrics
-from .performance import evaluate_performance
+from .performance import (
+    time_function, 
+    time_block, 
+    print_performance_summary, 
+    export_performance_metrics,
+    performance_monitor
+)
 
-__all__ = ['aggregate_portfolio_pnl', 'compute_portfolio_metrics', 
-           'evaluate_performance'] 
+__all__ = [
+    'aggregate_portfolio_pnl', 
+    'compute_portfolio_metrics',
+    'time_function',
+    'time_block', 
+    'print_performance_summary',
+    'export_performance_metrics',
+    'performance_monitor'
+] 

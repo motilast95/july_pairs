@@ -5,10 +5,12 @@ import logging
 from statsmodels.regression.linear_model import OLS
 from statsmodels.tools.tools import add_constant
 from statsmodels.tsa.stattools import adfuller
+from src.analysis.performance import time_function
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
+@time_function("model_fitting")
 def fit_spread(pair: Tuple[str, str], prices: pd.DataFrame, window: slice) -> Optional[Dict]:
     """
     Fit a linear regression model to estimate the hedge ratio (beta) for the pair in the given window.

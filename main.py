@@ -19,6 +19,7 @@ from config.trading_config import create_default_config
 from src.data.data_loader import load_prices, load_sector_tickers
 from src.trading.walk_forward import walk_forward
 from src.analysis.portfolio_analysis import aggregate_portfolio_pnl, compute_portfolio_metrics
+from src.analysis.performance import print_performance_summary, export_performance_metrics
 
 def setup_logging(level=logging.INFO):
     """Set up logging configuration."""
@@ -67,6 +68,15 @@ def run_backtest(args):
             logger.info("Backtest completed successfully!")
             logger.info(f"Total results: {len(results)}")
             logger.info(f"Portfolio metrics: {metrics}")
+            
+            # Print performance summary
+            logger.info("=" * 60)
+            logger.info("PERFORMANCE BENCHMARKING RESULTS")
+            logger.info("=" * 60)
+            print_performance_summary()
+            
+            # Export performance metrics
+            export_performance_metrics("results/performance_metrics.csv")
             
             return True
         else:

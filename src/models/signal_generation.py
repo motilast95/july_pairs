@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
+from src.analysis.performance import time_function
 
+@time_function("signal_generation_static")
 def generate_signals(
     spread: pd.Series,
     mean: float,
@@ -28,6 +30,7 @@ def generate_signals(
         signals.iloc[t] = position
     return signals
 
+@time_function("signal_generation_rolling")
 def generate_rolling_signals(
     spread: pd.Series,
     entry_z: float,
@@ -60,6 +63,7 @@ def generate_rolling_signals(
         signals.iloc[t] = position
     return signals
 
+@time_function("signal_generation_scaled")
 def generate_rolling_scaled_signals(
     spread: pd.Series,
     entry_z: float,
@@ -95,6 +99,7 @@ def generate_rolling_scaled_signals(
         positions.iloc[t] = position * abs(z) if position != 0 else 0.0
     return positions
 
+@time_function("signal_generation_stepwise")
 def generate_rolling_stepwise_signals(
     spread: pd.Series,
     entry_z: float,
@@ -181,6 +186,7 @@ def generate_rolling_stepwise_scaled_signals(
             positions.iloc[t] = 0.0
     return positions
 
+@time_function("signal_generation_tiered")
 def generate_tiered_signals(
     spread: pd.Series,
     entry_z: float = 1.0,

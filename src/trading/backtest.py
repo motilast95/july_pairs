@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
+from src.analysis.performance import time_function
 
+@time_function("backtest")
 def run_backtest(
     spread: pd.Series, 
     signals: pd.Series, 

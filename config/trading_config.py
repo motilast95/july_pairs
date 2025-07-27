@@ -179,11 +179,14 @@ def create_default_config() -> TradingConfig:
         train_size=504,
         test_size=126,
         adf_alpha=0.05,
-        entry_z=1.0,
-        exit_z=0.25,
-        signal_method='tiered',
+        entry_z=2.0,
+        exit_z=0.5,
+        signal_method='static',
         rolling_window=60,
         scaling_factor=1.0,
-        position_size=14,
-        initial_capital=100000
+        position_size=1.0,  # Simplified position sizing
+        max_position_per_pair=0.0,  # Disable position limits
+        max_portfolio_exposure=0.0,  # Disable portfolio exposure limits
+        initial_capital=100000,
+        transaction_cost_bps=1.0
     ) 
