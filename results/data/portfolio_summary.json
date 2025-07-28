@@ -1,0 +1,10 @@
+{
+  "initial_capital": 100000,
+  "final_portfolio_value": 122093.39011889015,
+  "total_return_pct": 23.986488307962528,
+  "total_pnl": 22093.390118890155,
+  "max_portfolio_value": 122093.39011889015,
+  "min_portfolio_value": 98315.37995153113,
+  "volatility": 6.560950402954009,
+  "sharpe_ratio": 1.2192335582225686
+}

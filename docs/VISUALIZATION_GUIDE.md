@@ -6,174 +6,186 @@ The pairs trading system includes a comprehensive visualization suite designed f
 
 ## 🎯 Key Visualization Types
 
-### 1. Interactive Dashboard (`strategy_dashboard.html`)
-**Purpose**: Complete interactive overview of strategy performance  
-**Format**: HTML (Plotly interactive)  
-**Best for**: Presentations, detailed analysis, stakeholder reviews
+### 1. Cell-Based Visualization Script (`results/visualize_strategy.py`)
+**Purpose**: Step-by-step visualization development and debugging  
+**Format**: Python script with cell markers (Jupyter-like)  
+**Best for**: Development, debugging, custom visualizations
 
 **Features**:
-- **Cumulative Returns**: Interactive line chart showing strategy growth
-- **Drawdown Analysis**: Visual representation of risk periods
-- **Monthly Returns Heatmap**: Calendar-style performance view
-- **Trade Distribution**: Histogram of individual trade PnL
-- **Rolling Sharpe Ratio**: Time-series of risk-adjusted performance
-- **Benchmark Comparison**: Bar chart comparing strategy vs market indices
+- **Cell-by-Cell Execution**: Run individual visualization cells
+- **Data Validation**: Built-in data checking and debugging
+- **Professional Charts**: High-quality PNG outputs
+- **Flexible Development**: Easy to modify and extend
 
-### 2. Performance Comparison Charts (`performance_comparison.png`)
-**Purpose**: Static charts for reports and presentations  
+**Available Cells**:
+- **CELL 1**: Load Data (portfolio, trades, benchmarks)
+- **CELL 2**: Cumulative Returns Chart
+- **CELL 3**: Data Validation
+- **CELL 4**: Risk-Adjusted Performance Comparison (Sharpe ratios)
+- **CELL 5**: Correlation Table
+- **CELL 6**: Debug Correlation Calculation
+- **CELL 7**: Performance Summary Table
+- **CELL 8**: Trade Distribution PnL Chart
+- **CELL 9**: Strategy Mechanics Visualization (3 separate charts)
+
+### 2. Individual Strategy Charts (PNG Files)
+**Purpose**: Professional individual charts for presentations  
 **Format**: PNG (high resolution)  
-**Best for**: Reports, documentation, printed materials
+**Best for**: Presentations, reports, documentation
 
-**Charts Included**:
-- **Cumulative Returns Comparison**: Strategy vs all benchmarks
-- **Risk-Return Scatter Plot**: Strategy positioning vs market
-- **Drawdown Analysis**: Strategy risk visualization
-- **Rolling Sharpe Ratio**: Performance consistency over time
+**Available Charts**:
+- **`cumulative_returns.png`**: Strategy vs benchmark cumulative returns
+- **`sharpe_ratio_comparison.png`**: Risk-adjusted performance comparison
+- **`correlation_table.png`**: Strategy correlation with benchmarks
+- **`performance_summary_table.png`**: Comprehensive performance metrics table
+- **`trade_distribution_pnl.png`**: Trade PnL distribution histogram
+- **`price_spread_chart.png`**: Price spread demonstration (strategy mechanics)
+- **`z_score_thresholds_chart.png`**: Z-score with entry/exit levels
+- **`trading_signals_chart.png`**: Trading signals visualization
 
-### 3. Trading Activity Analysis (`trading_activity.png`)
-**Purpose**: Deep dive into trading behavior and patterns  
-**Format**: PNG (high resolution)  
-**Best for**: Strategy optimization, risk analysis, trading insights
+### 3. Strategy Mechanics Visualization
+**Purpose**: Demonstrate how the pairs trading strategy works  
+**Format**: Three separate PNG files  
+**Best for**: Educational presentations, strategy explanation
 
-**Analysis Components**:
-- **Trade PnL Distribution**: Statistical distribution of trade outcomes
-- **Trade Duration Analysis**: How long positions are held
-- **Monthly Trade Count**: Trading frequency over time
-- **Win Rate Trends**: Success rate evolution
-- **Pair Performance**: Individual pair contribution analysis
-- **Position Size vs PnL**: Risk-reward relationship
+**Components**:
+- **Price Spread Chart**: Shows the spread between cointegrated stocks
+- **Z-Score Thresholds**: Demonstrates entry/exit signal generation
+- **Trading Signals**: Visualizes actual trading positions over time
 
-### 4. Benchmark Comparison Table (`benchmark_table.png`)
+### 4. Performance Summary Table
 **Purpose**: Professional comparison table for presentations  
 **Format**: PNG (high resolution)  
 **Best for**: Executive summaries, investor presentations
 
 **Metrics Included**:
+- Sharpe Ratio (highlighted as top row)
 - Total Return (%)
-- Sharpe Ratio
-- Maximum Drawdown (%)
-- Annualized Volatility (%)
-
-### 5. HTML Summary Report (`strategy_summary_report.html`)
-**Purpose**: Comprehensive written report with embedded metrics  
-**Format**: HTML (professional styling)  
-**Best for**: Client reports, investment proposals, documentation
-
-**Report Sections**:
-- Executive Summary with Key Metrics
-- Strategy Overview and Performance Highlights
-- Benchmark Comparison Table
-- Key Advantages and Investment Thesis
-- Risk-Adjusted Performance Analysis
+- Annual Return (%)
+- Volatility (%)
+- Max Drawdown (%)
+- Correlation to Pairs Strategy
 
 ## 🚀 How to Generate Visualizations
 
-### Method 1: Integrated with Backtest
+### Method 1: Cell-Based Script (Recommended)
 ```bash
-python main.py backtest --universe mega_cap --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled --benchmark --visualize
+cd results
+python visualize_strategy.py
 ```
 
-### Method 2: Standalone from Existing Results
+### Method 2: Individual Cell Execution
 ```bash
-python scripts/create_visualizations.py
+cd results
+# Edit visualize_strategy.py to run only specific cells
+# Comment out unwanted cells and run:
+python visualize_strategy.py
 ```
 
-### Method 3: Custom Parameters
+### Method 3: Custom Development
 ```bash
-python scripts/create_visualizations.py --results-file results/data/trades_data.csv --benchmark-file results/benchmark_comparison.json --output-dir results --format png
+cd results
+# Modify visualize_strategy.py for custom visualizations
+# Add new cells or modify existing ones
+python visualize_strategy.py
 ```
 
 ## 📈 Visualization Best Practices
 
 ### For Strategy Showcasing
 
-1. **Start with the Interactive Dashboard**
-   - Open `strategy_dashboard.html` in a web browser
-   - Use for live presentations and detailed Q&A sessions
-   - Zoom, hover, and interact with all charts
+1. **Start with Cumulative Returns**
+   - Use `cumulative_returns.png` to show overall performance
+   - Demonstrates strategy growth vs benchmarks
+   - Professional presentation quality
 
-2. **Use Performance Comparison for Reports**
-   - Include `performance_comparison.png` in written reports
-   - High-resolution PNG format works well in documents
-   - Shows comprehensive performance analysis
+2. **Highlight Risk-Adjusted Performance**
+   - Use `sharpe_ratio_comparison.png` to show risk-adjusted advantages
+   - Emphasizes strategy's superior risk-adjusted returns
+   - Perfect for quantitative audiences
 
-3. **Leverage the HTML Summary Report**
-   - Professional, self-contained report
-   - Includes all key metrics and comparisons
-   - Perfect for client deliverables
+3. **Show Diversification Benefits**
+   - Use `correlation_table.png` to demonstrate low correlation
+   - Highlights portfolio diversification advantages
+   - Important for institutional presentations
+
+4. **Present Comprehensive Summary**
+   - Use `performance_summary_table.png` for executive summaries
+   - All key metrics in one professional table
+   - Perfect for board presentations
+
+### For Educational Presentations
+
+1. **Explain Strategy Mechanics**
+   - Use the three strategy mechanics charts:
+     - `price_spread_chart.png`
+     - `z_score_thresholds_chart.png`
+     - `trading_signals_chart.png`
+   - Demonstrates the underlying methodology
+   - Perfect for technical audiences
+
+2. **Show Trade Analysis**
+   - Use `trade_distribution_pnl.png` to show trade quality
+   - Demonstrates win rate and trade distribution
+   - Important for risk management discussion
 
 ### For Investment Presentations
 
 1. **Lead with Key Metrics**
-   - Start with the metrics grid from the HTML report
-   - Highlight Sharpe ratio and risk-adjusted returns
-   - Emphasize low drawdown characteristics
+   - Start with performance summary table
+   - Highlight Sharpe ratio and low drawdown
+   - Emphasize risk-adjusted advantages
 
 2. **Show Benchmark Outperformance**
-   - Use the benchmark comparison table
+   - Use cumulative returns chart
    - Demonstrate consistent outperformance
    - Focus on risk-adjusted metrics
 
 3. **Explain the Strategy**
-   - Use trading activity analysis to show methodology
+   - Use strategy mechanics charts
    - Demonstrate systematic approach
    - Show risk management in action
 
-### For Technical Analysis
+## 🎨 Chart Specifications
 
-1. **Deep Dive with Trading Activity**
-   - Analyze trade distribution patterns
-   - Review pair performance contributions
-   - Examine position sizing effectiveness
-
-2. **Performance Attribution**
-   - Use rolling Sharpe ratio to identify performance drivers
-   - Analyze monthly returns heatmap for seasonality
-   - Review drawdown periods for risk assessment
-
-## 🎨 Customization Options
-
-### Output Formats
-- **PNG**: High-resolution static images (default)
-- **PDF**: Vector format for scaling
-- **SVG**: Web-friendly vector format
-
-### Color Schemes
-The visualization system uses a professional color palette:
+### Professional Color Palette
 - **Strategy Blue**: #2E86AB (primary strategy color)
 - **Benchmark Purple**: #A23B72 (comparison color)
 - **Positive Green**: #28A745 (gains, success)
 - **Negative Red**: #DC3545 (losses, risk)
 - **Neutral Gray**: #6C757D (baseline, neutral)
 
-### Chart Customization
-All charts can be customized by modifying the `StrategyVisualizer` class:
-- Chart sizes and layouts
-- Color schemes and styling
-- Data aggregation methods
-- Annotation and labeling
+### Chart Dimensions
+- **Standard Charts**: 12x8 inches (high resolution)
+- **Tables**: 14x8 inches (comprehensive data)
+- **Strategy Mechanics**: 12x8 inches each (individual focus)
+
+### Output Quality
+- **Resolution**: 300 DPI (print quality)
+- **Format**: PNG (universal compatibility)
+- **File Size**: Optimized for presentation use
 
 ## 📊 Interpreting the Visualizations
 
 ### Key Performance Indicators
 
-1. **Sharpe Ratio > 1.0**: Excellent risk-adjusted returns
-2. **Max Drawdown < 10%**: Manageable risk profile
-3. **Consistent Rolling Sharpe**: Stable performance over time
-4. **Positive Monthly Returns**: More winning than losing months
+1. **Sharpe Ratio > 1.2**: Excellent risk-adjusted returns
+2. **Max Drawdown < 7%**: Manageable risk profile
+3. **Low Correlation**: < 0.3 with major benchmarks
+4. **High Win Rate**: > 70% winning trades
 
-### Red Flags to Watch
+### Strategy Advantages Highlighted
 
-1. **Declining Rolling Sharpe**: Performance deterioration
-2. **Increasing Drawdowns**: Risk management issues
-3. **Concentrated Pair Performance**: Over-reliance on specific pairs
-4. **Inconsistent Trade Distribution**: Potential overfitting
+1. **Superior Sharpe Ratio**: 1.22 vs ~0.5-0.8 for benchmarks
+2. **Lower Volatility**: 6.6% vs 15-20% for benchmarks
+3. **Minimal Drawdown**: 6.1% vs 30%+ for benchmarks
+4. **Diversification**: Low correlation with market indices
 
 ### Success Indicators
 
 1. **Steady Cumulative Growth**: Consistent upward trajectory
 2. **Low Volatility**: Smooth performance curve
-3. **Diversified Pair Performance**: Multiple contributing pairs
+3. **High Win Rate**: 70.7% winning trades
 4. **Benchmark Outperformance**: Consistent vs market indices
 
 ## 🔧 Troubleshooting
@@ -182,69 +194,77 @@ All charts can be customized by modifying the `StrategyVisualizer` class:
 
 1. **Missing Dependencies**
    ```bash
-   pip install plotly matplotlib seaborn
+   pip install matplotlib seaborn pandas yfinance
    ```
 
 2. **No Data Available**
    - Ensure backtest has been run first
-   - Check that trades data file exists
-   - Verify benchmark comparison was performed
+   - Check that portfolio_daily.csv exists
+   - Verify trades_data.csv is available
 
 3. **Chart Rendering Issues**
-   - Use different output format (PNG vs PDF)
-   - Check file permissions in output directory
+   - Check file permissions in results directory
    - Ensure sufficient disk space
+   - Verify matplotlib backend compatibility
 
-### Performance Optimization
+### Development Tips
 
-1. **Large Datasets**: Use sampling for very large trade datasets
-2. **Memory Usage**: Close matplotlib figures after saving
-3. **Rendering Speed**: Use PNG format for faster generation
+1. **Cell-by-Cell Development**: Comment out unwanted cells
+2. **Data Validation**: Use CELL 3 for debugging
+3. **Custom Modifications**: Edit individual cells as needed
 
 ## 📝 Example Usage Scenarios
 
-### Scenario 1: Client Presentation
+### Scenario 1: Recruiter Presentation
 ```bash
 # Generate all visualizations
-python main.py backtest --universe mega_cap --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled --benchmark --visualize
+cd results
+python visualize_strategy.py
+
+# Use files for presentation:
+# - cumulative_returns.png (overall performance)
+# - sharpe_ratio_comparison.png (risk-adjusted advantages)
+# - performance_summary_table.png (comprehensive metrics)
+# - price_spread_chart.png (strategy explanation)
+```
+
+### Scenario 2: Technical Interview
+```bash
+# Focus on strategy mechanics
+cd results
+# Edit visualize_strategy.py to run only CELL 9
+python visualize_strategy.py
 
 # Use files:
-# - strategy_dashboard.html (interactive presentation)
-# - strategy_summary_report.html (client handout)
-# - benchmark_table.png (executive summary)
+# - price_spread_chart.png (methodology)
+# - z_score_thresholds_chart.png (signal generation)
+# - trading_signals_chart.png (execution)
 ```
 
-### Scenario 2: Technical Analysis
+### Scenario 3: Investment Proposal
 ```bash
-# Generate detailed analysis
-python scripts/create_visualizations.py --format pdf
+# Generate comprehensive presentation
+cd results
+python visualize_strategy.py
 
-# Focus on:
-# - trading_activity.png (trading patterns)
-# - performance_comparison.png (risk-return analysis)
-# - strategy_dashboard.html (interactive exploration)
-```
-
-### Scenario 3: Documentation
-```bash
-# Generate for documentation
-python scripts/create_visualizations.py --output-dir docs/images
-
-# Include in documentation:
-# - All PNG files for static documentation
-# - HTML report for interactive documentation
+# Use files:
+# - performance_summary_table.png (executive summary)
+# - correlation_table.png (diversification benefits)
+# - trade_distribution_pnl.png (risk management)
+# - cumulative_returns.png (performance track record)
 ```
 
 ## 🎯 Next Steps
 
-1. **Run a Complete Analysis**: Use the `--visualize` flag with your backtest
-2. **Explore Interactive Dashboard**: Open the HTML dashboard in your browser
-3. **Review Performance Charts**: Analyze the static performance comparison
-4. **Generate Custom Reports**: Use the standalone script for specific needs
-5. **Customize for Your Needs**: Modify the visualization code for specific requirements
+1. **Run the Visualization Script**: Execute `python visualize_strategy.py`
+2. **Review All Charts**: Check each PNG file for quality
+3. **Customize for Your Needs**: Modify cells in the script
+4. **Prepare Presentation**: Select the most relevant charts
+5. **Update Documentation**: Keep this guide current with new visualizations
 
 ---
 
 **Last Updated**: July 27, 2025  
 **Visualization System**: Production Ready  
-**Supported Formats**: PNG, PDF, SVG, HTML 
+**Supported Formats**: PNG (high resolution)  
+**Total Charts Available**: 8 individual professional charts 

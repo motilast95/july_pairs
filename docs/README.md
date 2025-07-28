@@ -1,6 +1,6 @@
 # Pairs Trading System
 
-A production-ready pairs trading system with excellent performance (1.266 Sharpe ratio) using a proven 60-stock universe across 6 balanced sectors.
+A production-ready pairs trading system with excellent performance (1.170 Sharpe ratio) using a proven 60-stock universe across 6 balanced sectors, complete with a professional visualization suite.
 
 ## 🚀 Quick Start
 
@@ -9,7 +9,15 @@ A production-ready pairs trading system with excellent performance (1.266 Sharpe
 python main.py backtest --start-date 2020-01-01 --end-date 2025-07-01 --signal-method rolling --entry-z 1.5 --exit-z 0.5 --risk-management-mode disabled
 ```
 
-**Performance**: 25.04% total return, 1.266 Sharpe ratio, 7.38% max drawdown
+**Performance**: 23.99% total return, 1.170 Sharpe ratio, 6.07% max drawdown
+
+### Generate Professional Visualizations
+```bash
+cd results
+python visualize_strategy.py
+```
+
+**Output**: 8 high-quality PNG charts perfect for presentations
 
 ### Mid-Cap Experiment
 ```bash
@@ -35,6 +43,46 @@ python main.py backtest --universe mid_cap --start-date 2020-01-01 --end-date 20
 - **Multiple Universes**: Mega-cap (default), mid-cap, custom
 - **Risk Management**: Configurable from disabled to full
 - **Performance Monitoring**: Optional timing and diagnostics
+- **Professional Visualizations**: 8 high-quality charts for presentations
+
+## 📈 Performance Results
+
+### Default System (Mega-Cap Universe)
+- **Total Return**: 23.99% over 5.5 years (2020-2025)
+- **Sharpe Ratio**: 1.170 (excellent risk-adjusted returns)
+- **Max Drawdown**: 6.07% (manageable risk)
+- **Annualized Return**: 7.41%
+- **Win Rate**: 70.7% (excellent trade quality)
+
+### Signal Methods Available
+- **`static`**: Fixed z-score thresholds
+- **`rolling`**: Dynamic z-scores using rolling windows
+- **`rolling_scaled`**: Continuous position sizing
+- **`tiered`**: Multi-level position sizing
+
+### Pair Selection Methods
+- **`original`**: ADF test-based (slow but thorough)
+- **`fast`**: Distance-based pre-screening (10x faster)
+- **`ultra_fast`**: Distance-only (fastest)
+
+## 📊 Visualization Suite
+
+### Professional Charts Available
+1. **`cumulative_returns.png`** - Strategy vs benchmark performance
+2. **`sharpe_ratio_comparison.png`** - Risk-adjusted performance comparison
+3. **`correlation_table.png`** - Strategy correlation with benchmarks
+4. **`performance_summary_table.png`** - Comprehensive metrics table
+5. **`trade_distribution_pnl.png`** - Trade PnL distribution histogram
+6. **`price_spread_chart.png`** - Strategy mechanics demonstration
+7. **`z_score_thresholds_chart.png`** - Signal generation visualization
+8. **`trading_signals_chart.png`** - Trading positions over time
+
+### Visualization Features
+- **Cell-based development** script for easy customization
+- **High-resolution PNG outputs** (300 DPI, print quality)
+- **Professional color palette** and styling
+- **Comprehensive data validation** and debugging
+- **Perfect for presentations** and documentation
 
 ## 🏗️ System Architecture
 
@@ -63,25 +111,7 @@ src/
 - **`config/trading_config.py`**: Main trading configuration with validation
 - **`config/data_params.py`**: Original 60-stock sector definitions
 - **`main.py`**: Enhanced CLI with comprehensive parameter control
-
-## 📈 Performance Results
-
-### Default System (Mega-Cap Universe)
-- **Total Return**: 25.04% over 5.5 years (2020-2025)
-- **Sharpe Ratio**: 1.266 (excellent risk-adjusted returns)
-- **Max Drawdown**: 7.38% (manageable risk)
-- **Annualized Return**: 7.71%
-
-### Signal Methods Available
-- **`static`**: Fixed z-score thresholds
-- **`rolling`**: Dynamic z-scores using rolling windows
-- **`rolling_scaled`**: Continuous position sizing
-- **`tiered`**: Multi-level position sizing
-
-### Pair Selection Methods
-- **`original`**: ADF test-based (slow but thorough)
-- **`fast`**: Distance-based pre-screening (10x faster)
-- **`ultra_fast`**: Distance-only (fastest)
+- **`results/visualize_strategy.py`**: Cell-based visualization script
 
 ## 🛠️ Advanced Usage
 
@@ -98,91 +128,54 @@ src/
 --signal-method [static|rolling|rolling_scaled|tiered]
 --entry-z 1.5
 --exit-z 0.5
---rolling-window 60
-
-# Universe selection
---universe [mega_cap|mid_cap|custom]
-
-# Risk management
---risk-management-mode [disabled|minimal|moderate|full]
---disable-volatility-scaling
---disable-position-limits
---disable-pair-validation
-
-# Performance monitoring
---enable-performance
 ```
 
-### Cache Management
+### Visualization Development
 
 ```bash
-# Clear all cached data
-python main.py cache clear
+# Generate all visualizations
+cd results
+python visualize_strategy.py
 
-# Clear specific universe cache
-python main.py cache clear --universe mid_cap
+# Custom development
+# Edit visualize_strategy.py to run specific cells
+# Comment out unwanted cells and run:
+python visualize_strategy.py
 ```
 
-### Diagnostic Tools
+## 📋 Documentation
 
-```bash
-# Run diagnostic analysis
-python main.py diagnostic
+- **[Progress Report](PROGRESS_REPORT.md)**: Comprehensive system overview and performance analysis
+- **[Visualization Guide](VISUALIZATION_GUIDE.md)**: Complete guide to the visualization suite
+- **[CLI Usage](CLI_USAGE.md)**: Detailed command-line interface documentation
+- **[Technical Guide](TECHNICAL_GUIDE.md)**: System architecture and technical details
 
-# Run specific analysis scripts
-python scripts/pair_quality_analysis.py
-python scripts/signal_analysis.py
-```
+## 🎯 Use Cases
 
-## 🔧 Development
+### For Recruiters and Presentations
+- Use `cumulative_returns.png` and `sharpe_ratio_comparison.png` for performance overview
+- Use `performance_summary_table.png` for comprehensive metrics
+- Use strategy mechanics charts for technical explanation
 
-### Running Tests
-```bash
-pytest tests/
-```
+### For Technical Interviews
+- Use strategy mechanics charts to explain methodology
+- Use `trade_distribution_pnl.png` to show trade quality
+- Use correlation table to demonstrate diversification
 
-### Adding New Universes
-1. Update `src/data/universe_manager.py`
-2. Add tickers and sector groupings
-3. Configure universe-specific parameters
+### For Investment Proposals
+- Use all charts for comprehensive presentation
+- Focus on risk-adjusted performance advantages
+- Emphasize low correlation and diversification benefits
 
-### Performance Monitoring
-```bash
-# Enable detailed timing
-python main.py backtest --enable-performance [other-args]
-```
+## 🚀 Next Steps
 
-## 📚 Documentation
+1. **Run the system**: Use the default configuration for optimal performance
+2. **Generate visualizations**: Create professional charts for presentations
+3. **Customize as needed**: Modify the visualization script for specific requirements
+4. **Deploy to production**: Use the system for live trading with proper risk management
 
-- **`docs/progress/2025-07-27.md`**: Complete development progress
-- **`docs/CLI_USAGE.md`**: Detailed CLI reference
-- **`docs/PERFORMANCE_MONITORING_USAGE.md`**: Performance monitoring guide
+---
 
-## 🎯 Key Insights
-
-### Market Efficiency Hypothesis
-- **Mega-cap equities** may be "arbed out" for pairs trading
-- **Mid-cap universe** testing planned to validate hypothesis
-- **Evidence**: Low trade frequency despite good pair selection
-
-### Signal Generation Optimization
-- **Z-score thresholds** (2.0/0.5) were too conservative
-- **Optimal thresholds**: 1.5/0.5 for better performance
-- **Position sizing**: 100.0 provides optimal returns
-
-### System Improvements
-- **Fast pair selection**: 10x speedup from distance-based pre-screening
-- **Data caching**: Automatic caching for faster iteration
-- **Flexible CLI**: Comprehensive parameter control
-- **Multiple universes**: Easy testing across different market segments
-
-## 🚀 Mission Accomplished
-
-✅ **Original Goal**: Debug failing pairs trading pipeline  
-✅ **Solution**: Created robust, fast, flexible system  
-✅ **Performance**: Achieved 1.266 Sharpe ratio  
-✅ **Usability**: Simple CLI with comprehensive options  
-✅ **Scalability**: Multiple universes and configurations  
-✅ **Maintainability**: Clean, documented, modular code  
-
-**The pairs trading system is now production-ready with excellent performance using your proven 60-stock universe!**
+**Last Updated**: July 27, 2025  
+**Performance**: 1.170 Sharpe ratio, 23.99% total return  
+**Visualization Suite**: Complete with 8 professional charts

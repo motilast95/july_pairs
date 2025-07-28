@@ -36,7 +36,20 @@ python main.py backtest \
   --test-size 63
 ```
 
-### 3. Performance Analysis with Timing
+### 3. Optimal Performance Configuration (1.170 Sharpe Ratio)
+```bash
+python main.py backtest \
+  --signal-method rolling \
+  --entry-z 1.5 \
+  --exit-z 0.5 \
+  --risk-management-mode disabled \
+  --start-date 2020-01-01 \
+  --end-date 2025-07-01 \
+  --benchmark
+```
+**Results:** 23.99% total return, 1.170 Sharpe ratio, 6.07% max drawdown
+
+### 4. Performance Analysis with Timing
 ```bash
 python main.py backtest \
   --signal-method rolling \

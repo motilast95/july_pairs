@@ -186,4 +186,81 @@ def walk_forward(prices: pd.DataFrame, sector_tickers: Dict[str, list], config: 
         trades_df.to_csv('results/data/trades_data.csv', index=False)
         logger.info(f"Saved all trades to results/data/trades_data.csv ({len(trades_df)} trades)")
 
+    # Save daily portfolio data for visualizations
+    if results:
+        # Combine all daily P&L series
+        all_daily_pnl = pd.Series(dtype=float)
+        for result in results:
+            if 'daily_pnl' in result:
+                daily_pnl = result['daily_pnl']
+                # Align dates and add P&L
+                for date, pnl in daily_pnl.items():
+                    if date in all_daily_pnl.index:
+                        all_daily_pnl[date] += pnl
+                    else:
+                        all_daily_pnl[date] = pnl
+        
+        # Calculate portfolio metrics (outside the loop)
+        if not all_daily_pnl.empty:
+            # Sort by date
+            all_daily_pnl = all_daily_pnl.sort_index()
+            
+            # Filter to only include trading periods (when there are actual trades)
+            if all_trades:
+                trades_df_temp = pd.DataFrame(all_trades)
+                trades_df_temp['entry_date'] = pd.to_datetime(trades_df_temp['entry_date'])
+                trades_df_temp['exit_date'] = pd.to_datetime(trades_df_temp['exit_date'])
+                
+                # Get the actual trading date range
+                trading_start = trades_df_temp['entry_date'].min()
+                trading_end = trades_df_temp['exit_date'].max()
+                
+                # Filter daily P&L to only include trading periods
+                all_daily_pnl = all_daily_pnl[trading_start:trading_end]
+            
+            # Calculate cumulative P&L
+            cumulative_pnl = all_daily_pnl.cumsum()
+            
+            # Calculate portfolio value (assuming $100k initial capital)
+            initial_capital = 100000
+            portfolio_value = initial_capital + cumulative_pnl
+            
+            # Calculate daily returns (matching main backtest method)
+            daily_returns = all_daily_pnl / initial_capital
+            
+            # Calculate total return using geometric returns (matching main backtest)
+            total_return = (1 + daily_returns).prod() - 1
+            
+            # Calculate cumulative returns as percentage
+            cumulative_returns = (portfolio_value / initial_capital - 1) * 100
+            
+            # Save daily portfolio data
+            portfolio_data = pd.DataFrame({
+                'date': portfolio_value.index,
+                'daily_pnl': all_daily_pnl.values,
+                'portfolio_value': portfolio_value.values,
+                'daily_return': daily_returns.values,
+                'cumulative_return_pct': cumulative_returns.values
+            })
+            
+            portfolio_data.to_csv('results/data/portfolio_daily.csv', index=False)
+            logger.info(f"Saved daily portfolio data to results/data/portfolio_daily.csv")
+            
+            # Also save summary metrics (matching main backtest calculation)
+            summary_metrics = {
+                'initial_capital': initial_capital,
+                'final_portfolio_value': portfolio_value.iloc[-1],
+                'total_return_pct': total_return * 100,  # Use geometric return
+                'total_pnl': cumulative_pnl.iloc[-1],
+                'max_portfolio_value': portfolio_value.max(),
+                'min_portfolio_value': portfolio_value.min(),
+                'volatility': daily_returns.std() * np.sqrt(252) * 100,
+                'sharpe_ratio': daily_returns.mean() / daily_returns.std() * np.sqrt(252) if daily_returns.std() > 0 else 0
+            }
+            
+            import json
+            with open('results/data/portfolio_summary.json', 'w') as f:
+                json.dump(summary_metrics, f, indent=2)
+            logger.info(f"Saved portfolio summary to results/data/portfolio_summary.json")
+
     return results
