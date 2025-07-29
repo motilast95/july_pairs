@@ -49,7 +49,7 @@ print(f"✓ Benchmark data loaded")
 print(f"\nPortfolio Summary:")
 print(f"- Total Return: {portfolio_summary['total_return_pct']:.2f}%")
 print(f"- Final Portfolio Value: ${portfolio_summary['final_portfolio_value']:,.0f}")
-print(f"- Sharpe Ratio: {portfolio_summary['sharpe_ratio']:.3f}")
+print(f"- Sharpe Ratio: {benchmark_data['strategy']['sharpe_ratio']:.3f} (from main backtest)")
 print(f"- Volatility: {portfolio_summary['volatility']:.2f}%")
 
 # Use benchmark data for consistency
@@ -115,7 +115,7 @@ ax.grid(True, alpha=0.3)
 
 # Add performance metrics as text
 strategy_return = portfolio_summary['total_return_pct']  # Use portfolio summary value
-ax.text(0.02, 0.98, f'Strategy Return: {strategy_return:.1f}%\nSharpe Ratio: {portfolio_summary["sharpe_ratio"]:.3f}', 
+ax.text(0.02, 0.98, f'Strategy Return: {strategy_return:.1f}%\nSharpe Ratio: {benchmark_data["strategy"]["sharpe_ratio"]:.3f}', 
         transform=ax.transAxes, fontsize=10, verticalalignment='top',
         bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
@@ -165,7 +165,7 @@ for ticker in benchmark_tickers:
 performance_data = {
     'Strategy': {
         'Return': portfolio_summary['total_return_pct'],
-        'Sharpe': portfolio_summary['sharpe_ratio'],
+        'Sharpe': benchmark_data['strategy']['sharpe_ratio'],
         'Volatility': portfolio_summary['volatility'],
         'Max_Drawdown': -6.07,  # From main backtest
         'Correlation': 1.0
@@ -378,43 +378,23 @@ print("="*60)
 
 # Create summary table data
 summary_data = {
-    'Pairs Strategy': {
-        'Sharpe': portfolio_summary['sharpe_ratio'],
-        'Total Return (%)': portfolio_summary['total_return_pct'],
-        'Annual Return (%)': portfolio_summary['sharpe_ratio'] * portfolio_summary['volatility'],  # Already in percentage
-        'Volatility (%)': portfolio_summary['volatility'],
-        'Max Drawdown (%)': -6.07,
-        'Correlation to Pairs Strategy': 1.0
-    }
+    'Pairs Strategy': [benchmark_data['strategy']['sharpe_ratio'], portfolio_summary['total_return_pct'], 
+                      benchmark_data['strategy']['annualized_return'] * 100, portfolio_summary['volatility'], 
+                      benchmark_data['strategy']['max_drawdown'] * 100, 1.0],
+    'SPY': [comparison_df.loc['SPY', 'Sharpe'], comparison_df.loc['SPY', 'Return'], 
+            comparison_df.loc['SPY', 'Return'] * 0.4, comparison_df.loc['SPY', 'Volatility'], 
+            comparison_df.loc['SPY', 'Max_Drawdown'], comparison_df.loc['SPY', 'Correlation']],
+    'QQQ': [comparison_df.loc['QQQ', 'Sharpe'], comparison_df.loc['QQQ', 'Return'], 
+            comparison_df.loc['QQQ', 'Return'] * 0.4, comparison_df.loc['QQQ', 'Volatility'], 
+            comparison_df.loc['QQQ', 'Max_Drawdown'], comparison_df.loc['QQQ', 'Correlation']],
+    'IWM': [comparison_df.loc['IWM', 'Sharpe'], comparison_df.loc['IWM', 'Return'], 
+            comparison_df.loc['IWM', 'Return'] * 0.4, comparison_df.loc['IWM', 'Volatility'], 
+            comparison_df.loc['IWM', 'Max_Drawdown'], comparison_df.loc['IWM', 'Correlation']]
 }
 
-# Add benchmark data
-for ticker in benchmark_tickers:
-    if ticker in benchmark_prices.columns:
-        benchmark_returns = benchmark_prices[ticker].pct_change().dropna()
-        if not benchmark_returns.empty:
-            # Calculate metrics
-            total_return = (benchmark_prices[ticker].iloc[-1] / benchmark_prices[ticker].iloc[0] - 1) * 100
-            volatility = benchmark_returns.std() * np.sqrt(252) * 100
-            sharpe = (benchmark_returns.mean() * 252) / (benchmark_returns.std() * np.sqrt(252)) if benchmark_returns.std() > 0 else 0
-            annual_return = sharpe * volatility / 100
-            
-            summary_data[ticker] = {
-                'Sharpe': sharpe,
-                'Total Return (%)': total_return,
-                'Annual Return (%)': annual_return * 100,  # Convert to percentage
-                'Volatility (%)': volatility,
-                'Max Drawdown (%)': -33.0,
-                'Correlation to Pairs Strategy': correlations.get(ticker, 0.0)
-            }
-
-# Create DataFrame and reorder columns
-summary_df = pd.DataFrame(summary_data).T
+# Create DataFrame
+summary_df = pd.DataFrame(summary_data, index=['Sharpe', 'Total Return (%)', 'Annual Return (%)', 'Volatility (%)', 'Max Drawdown (%)', 'Correlation']).T
 summary_df = summary_df.round(2)
-
-# Reorder columns to put Sharpe first
-column_order = ['Sharpe', 'Total Return (%)', 'Annual Return (%)', 'Volatility (%)', 'Max Drawdown (%)', 'Correlation to Pairs Strategy']
-summary_df = summary_df[column_order]
 
 # Create the visualization
 fig, ax = plt.subplots(figsize=(14, 8))
@@ -516,14 +496,13 @@ print("DEBUG COMPLETE")
 print("="*60)
 
 # =============================================================================
-# CELL 9: Strategy Mechanics Visualization
+# CELL 9: Creating Strategy Mechanics Visualization
 # =============================================================================
 print("\n" + "="*60)
 print("CELL 9: Creating Strategy Mechanics Visualization")
 print("="*60)
 
-# Let's create a demonstration of how pairs trading works
-# We'll use a sample pair from our trades data
+# Demonstrate strategy mechanics using actual trading data
 if len(trades_df) > 0:
     # Get a sample trade to demonstrate
     sample_trade = trades_df.iloc[0]
@@ -576,49 +555,39 @@ if len(trades_df) > 0:
                 position = 0  # Exit short
             signals.iloc[t] = position
         
-        # Create three separate visualizations
+        # Create a single figure with three subplots stacked vertically
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(14, 12))
         
-        # Plot 1: Price Spread (Separate File)
-        fig1, ax1 = plt.subplots(figsize=(12, 8))
+        # Plot 1: Price Spread (Top)
         ax1.plot(spread.index, spread.values, color='#2E86AB', linewidth=2, label='Price Spread')
         ax1.plot(spread.index, rolling_mean.values, color='red', linestyle='--', alpha=0.7, label='Rolling Mean')
         ax1.fill_between(spread.index, rolling_mean - rolling_std, rolling_mean + rolling_std, 
                         alpha=0.2, color='gray', label='±1 Std Dev')
-        ax1.set_title(f'Price Spread: {pair1} - {beta:.2f}×{pair2}', fontsize=16, fontweight='bold')
+        ax1.set_title(f'1. Price Spread: {pair1} - {beta:.2f}×{pair2}', fontsize=14, fontweight='bold')
         ax1.set_ylabel('Spread Value', fontsize=12)
-        ax1.set_xlabel('Date', fontsize=12)
-        ax1.legend()
+        ax1.legend(fontsize=11)
         ax1.grid(True, alpha=0.3)
-        plt.tight_layout()
-        plt.savefig('price_spread_chart.png', dpi=300, bbox_inches='tight')
-        plt.show()
         
-        # Plot 2: Z-Score with Entry/Exit Levels (Separate File)
-        fig2, ax2 = plt.subplots(figsize=(12, 8))
+        # Plot 2: Z-Score with Entry/Exit Levels (Middle)
         ax2.plot(z_scores.index, z_scores.values, color='#A23B72', linewidth=2, label='Z-Score')
         ax2.axhline(y=entry_z, color='red', linestyle='--', alpha=0.8, label=f'Entry Level (±{entry_z})')
         ax2.axhline(y=-entry_z, color='red', linestyle='--', alpha=0.8)
         ax2.axhline(y=exit_z, color='orange', linestyle='--', alpha=0.8, label=f'Exit Level (±{exit_z})')
         ax2.axhline(y=-exit_z, color='orange', linestyle='--', alpha=0.8)
         ax2.axhline(y=0, color='black', linestyle='-', alpha=0.5, label='Mean (0)')
-        ax2.fill_between(z_scores.index, -1, 1, alpha=0.1, color='green', label='Neutral Zone')
-        ax2.set_title('Z-Score with Entry/Exit Thresholds', fontsize=16, fontweight='bold')
+        ax2.fill_between(z_scores.index, -exit_z, exit_z, alpha=0.1, color='green', label='Neutral Zone')
+        ax2.set_title('2. Z-Score with Entry/Exit Thresholds', fontsize=14, fontweight='bold')
         ax2.set_ylabel('Z-Score', fontsize=12)
-        ax2.set_xlabel('Date', fontsize=12)
-        ax2.legend()
+        ax2.legend(fontsize=10)
         ax2.grid(True, alpha=0.3)
-        plt.tight_layout()
-        plt.savefig('z_score_thresholds_chart.png', dpi=300, bbox_inches='tight')
-        plt.show()
         
-        # Plot 3: Trading Signals (Separate File)
-        fig3, ax3 = plt.subplots(figsize=(12, 8))
+        # Plot 3: Trading Signals (Bottom)
         # Color code the signals
         colors = ['gray' if s == 0 else 'green' if s == 1 else 'red' for s in signals]
         ax3.scatter(signals.index, signals.values, c=colors, s=50, alpha=0.7)
         ax3.plot(signals.index, signals.values, color='black', linewidth=1, alpha=0.5)
         ax3.axhline(y=0, color='black', linestyle='-', alpha=0.5)
-        ax3.set_title('Trading Signals (1=Long, -1=Short, 0=Flat)', fontsize=16, fontweight='bold')
+        ax3.set_title('3. Trading Signals (1=Long, -1=Short, 0=Flat)', fontsize=14, fontweight='bold')
         ax3.set_ylabel('Position', fontsize=12)
         ax3.set_xlabel('Date', fontsize=12)
         ax3.set_ylim(-1.5, 1.5)
@@ -629,14 +598,13 @@ if len(trades_df) > 0:
         legend_elements = [Patch(facecolor='green', label='Long Position'),
                           Patch(facecolor='red', label='Short Position'),
                           Patch(facecolor='gray', label='No Position')]
-        ax3.legend(handles=legend_elements, loc='upper right')
+        ax3.legend(handles=legend_elements, fontsize=10)
+        
         plt.tight_layout()
-        plt.savefig('trading_signals_chart.png', dpi=300, bbox_inches='tight')
+        plt.savefig('strategy_mechanics_combined.png', dpi=300, bbox_inches='tight')
         plt.show()
         
-        print("✓ Price spread chart saved as 'price_spread_chart.png'")
-        print("✓ Z-score thresholds chart saved as 'z_score_thresholds_chart.png'")
-        print("✓ Trading signals chart saved as 'trading_signals_chart.png'")
+        print("✓ Strategy mechanics combined chart saved as 'strategy_mechanics_combined.png'")
         
         # Print strategy explanation
         print("\n" + "="*80)

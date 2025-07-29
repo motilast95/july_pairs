@@ -176,7 +176,7 @@ python visualize_strategy.py
 
 ### Strategy Advantages Highlighted
 
-1. **Superior Sharpe Ratio**: 1.22 vs ~0.5-0.8 for benchmarks
+1. **Superior Sharpe Ratio**: 1.170 vs ~0.5-0.8 for benchmarks
 2. **Lower Volatility**: 6.6% vs 15-20% for benchmarks
 3. **Minimal Drawdown**: 6.1% vs 30%+ for benchmarks
 4. **Diversification**: Low correlation with market indices
