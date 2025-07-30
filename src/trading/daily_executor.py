@@ -128,15 +128,25 @@ class DailyTradeExecutor:
                 shares1 = max(shares1, min_shares)
                 shares2 = max(shares2, min_shares)
                 
-                if signal == "LONG":
-                    # Long the spread: Long ticker1, Short ticker2
+                # Stateful logic: Only enter if not already in position
+                current_pair_position = "NONE"
+                if pos1 > 0 and pos2 < 0:
+                    current_pair_position = "LONG"
+                elif pos1 < 0 and pos2 > 0:
+                    current_pair_position = "SHORT"
+                
+                if signal == "LONG" and current_pair_position != "LONG":
+                    # Enter long position only if not already long
                     target_pos1 = shares1
                     target_pos2 = -shares2
-                    
-                elif signal == "SHORT":
-                    # Short the spread: Short ticker1, Long ticker2
+                elif signal == "SHORT" and current_pair_position != "SHORT":
+                    # Enter short position only if not already short
                     target_pos1 = -shares1
                     target_pos2 = shares2
+                else:
+                    # Hold current position (no change)
+                    target_pos1 = pos1
+                    target_pos2 = pos2
                     
             elif signal == "FLAT":
                 # Close positions
