@@ -8,7 +8,7 @@ import numpy as np
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple
-import yfinance as yf
+
 
 from src.data.pair_selection import select_pairs_fast
 from src.models.model_fitting import fit_spread
@@ -52,9 +52,9 @@ def setup_live_trading(
     
     logger.info(f"📊 Universe: {len(all_tickers)} stocks across {len(sector_tickers)} sectors")
     
-    # Step 2: Download price data
-    logger.info("📥 Downloading price data...")
-    prices = download_price_data(all_tickers, start_date, end_date)
+    # Step 2: Load existing price data
+    logger.info("📥 Loading existing price data...")
+    prices = load_existing_price_data(start_date, end_date)
     
     if prices is None or prices.empty:
         logger.error("❌ Failed to download price data")
@@ -124,49 +124,24 @@ def setup_live_trading(
     return training_summary
 
 
-def download_price_data(tickers: List[str], start_date: str, end_date: str) -> pd.DataFrame:
-    """Download price data for all tickers in the universe."""
+def load_existing_price_data(start_date: str, end_date: str) -> pd.DataFrame:
+    """Load existing price data from data/prices.csv."""
     try:
-        logger.info(f"📥 Downloading data for {len(tickers)} tickers...")
+        logger.info("📥 Loading existing price data from data/prices.csv...")
         
-        # Download data in chunks to avoid timeouts
-        chunk_size = 20
-        all_data = {}
+        # Load the CSV file
+        prices = pd.read_csv('data/prices.csv', index_col=0, parse_dates=True)
         
-        for i in range(0, len(tickers), chunk_size):
-            chunk = tickers[i:i+chunk_size]
-            logger.info(f"📥 Downloading chunk {i//chunk_size + 1}/{(len(tickers)-1)//chunk_size + 1}: {len(chunk)} tickers")
-            
-            try:
-                data = yf.download(chunk, start=start_date, end=end_date, progress=False)
-                
-                # Handle single ticker vs multiple tickers
-                if len(chunk) == 1:
-                    all_data[chunk[0]] = data['Adj Close']
-                else:
-                    for ticker in chunk:
-                        if ticker in data['Adj Close'].columns:
-                            all_data[ticker] = data['Adj Close'][ticker]
-                        else:
-                            logger.warning(f"⚠️ No data for {ticker}")
-                            
-            except Exception as e:
-                logger.error(f"❌ Error downloading chunk: {e}")
-                continue
+        # Filter to the requested date range
+        prices = prices.loc[start_date:end_date]
         
-        if not all_data:
-            logger.error("❌ No data downloaded")
-            return pd.DataFrame()
+        logger.info(f"✅ Loaded {len(prices)} days of data for {len(prices.columns)} stocks")
+        logger.info(f"📅 Date range: {prices.index[0]} to {prices.index[-1]}")
         
-        # Create DataFrame
-        prices = pd.DataFrame(all_data)
-        prices = prices.dropna(how='all')  # Remove rows with all NaN
-        
-        logger.info(f"✅ Downloaded {len(prices)} days of data for {len(prices.columns)} stocks")
         return prices
         
     except Exception as e:
-        logger.error(f"❌ Error downloading price data: {e}")
+        logger.error(f"❌ Error loading price data: {e}")
         return pd.DataFrame()
 
 
@@ -239,7 +214,8 @@ def print_training_summary(training_summary: Dict):
     print("-" * 40)
     
     for i, pair in enumerate(valid_pairs, 1):
-        model = training_summary['pair_models'][pair]
+        pair_key = f"{pair[0]}-{pair[1]}"
+        model = training_summary['pair_models'][pair_key]
         print(f"{i:2d}. {pair[0]:<6} - {pair[1]:<6} | β={model['beta']:7.4f} | R²={model['rsquared']:6.3f}")
     
     print("\n" + "="*60)
