@@ -1,0 +1,197 @@
+"""
+Test IBKR Data Format and Spread Calculation
+Explore what data we get from IBKR and test our calculations
+"""
+
+import pandas as pd
+import numpy as np
+import logging
+from datetime import datetime, timedelta
+from ib_insync import *
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def test_ibkr_data_format():
+    """Test IBKR data format and availability."""
+    print("🔍 TESTING IBKR DATA FORMAT")
+    print("="*50)
+    
+    # Connect to IBKR
+    ib = IB()
+    try:
+        ib.connect('127.0.0.1', 7497, clientId=1)
+        logger.info("✅ Connected to IBKR")
+        
+        # Test tickers from our pairs
+        test_tickers = ['JPM', 'GS', 'WFC', 'C']  # Start with 4 tickers
+        
+        print(f"\n📊 Testing data for: {test_tickers}")
+        print("-" * 40)
+        
+        for ticker in test_tickers:
+            print(f"\n🔍 Testing {ticker}:")
+            
+            # Create contract
+            contract = Stock(ticker, 'SMART', 'USD')
+            
+            # Request market data
+            ib.qualifyContracts(contract)
+            
+            # Get current market data
+            ticker_data = ib.reqMktData(contract)
+            
+            # Wait a moment for data
+            ib.sleep(2)
+            
+            # Print available data
+            print(f"  📈 Bid: ${ticker_data.bid:.2f}")
+            print(f"  📉 Ask: ${ticker_data.ask:.2f}")
+            print(f"  💰 Last: ${ticker_data.last:.2f}")
+            print(f"  📊 Close: ${ticker_data.close:.2f}")
+            print(f"  📈 High: ${ticker_data.high:.2f}")
+            print(f"  📉 Low: ${ticker_data.low:.2f}")
+            print(f"  📦 Volume: {ticker_data.volume:,}")
+            
+            # Check if data is delayed
+            if hasattr(ticker_data, 'delayed'):
+                print(f"  ⏰ Delayed: {ticker_data.delayed}")
+            
+            # Cancel market data request
+            ib.cancelMktData(contract)
+        
+        # Test historical data
+        print(f"\n📚 Testing Historical Data for JPM:")
+        print("-" * 40)
+        
+        jpm_contract = Stock('JPM', 'SMART', 'USD')
+        ib.qualifyContracts(jpm_contract)
+        
+        # Get last 5 days of data
+        end_time = datetime.now().strftime('%Y%m%d %H:%M:%S')
+        bars = ib.reqHistoricalData(
+            jpm_contract,
+            endDateTime=end_time,
+            durationStr='5 D',
+            barSizeSetting='1 day',
+            whatToShow='TRADES',
+            useRTH=True
+        )
+        
+        if bars:
+            print(f"  📅 Got {len(bars)} days of historical data:")
+            for bar in bars[-3:]:  # Show last 3 days
+                print(f"    {bar.date}: Open=${bar.open:.2f}, Close=${bar.close:.2f}, Volume={bar.volume:,}")
+        else:
+            print("  ❌ No historical data received")
+        
+        ib.disconnect()
+        logger.info("🔌 Disconnected from IBKR")
+        
+    except Exception as e:
+        logger.error(f"❌ Error testing IBKR data: {e}")
+        if ib.isConnected():
+            ib.disconnect()
+
+def test_spread_calculation_with_ibkr_data():
+    """Test our spread calculation using IBKR data."""
+    print("\n🧮 TESTING SPREAD CALCULATION WITH IBKR DATA")
+    print("="*50)
+    
+    # Load our training results to get hedge ratios
+    try:
+        import json
+        import glob
+        import os
+        
+        # Find the most recent training summary
+        pattern = "results/live_trading/training_summary_*.json"
+        files = glob.glob(pattern)
+        
+        if not files:
+            print("❌ No training summary files found. Run Phase 1 first.")
+            return
+        
+        latest_file = max(files, key=os.path.getctime)
+        print(f"📁 Using training summary: {latest_file}")
+        
+        with open(latest_file, 'r') as f:
+            training_summary = json.load(f)
+        
+        # Get hedge ratios for our test pairs
+        hedge_ratios = {}
+        for pair_key, model in training_summary['pair_models'].items():
+            if pair_key in ['JPM-GS', 'WFC-C']:  # Test with first two pairs
+                hedge_ratios[pair_key] = model['beta']
+                print(f"📊 {pair_key}: β={model['beta']:.4f}")
+        
+        # Connect to IBKR and get current prices
+        ib = IB()
+        try:
+            ib.connect('127.0.0.1', 7497, clientId=1)
+            logger.info("✅ Connected to IBKR for spread calculation test")
+            
+            current_prices = {}
+            
+            # Get current prices for all tickers
+            for pair_key in hedge_ratios.keys():
+                ticker1, ticker2 = pair_key.split('-')
+                
+                for ticker in [ticker1, ticker2]:
+                    if ticker not in current_prices:
+                        contract = Stock(ticker, 'SMART', 'USD')
+                        ib.qualifyContracts(contract)
+                        
+                        ticker_data = ib.reqMktData(contract)
+                        ib.sleep(2)
+                        
+                        # Use last price, fallback to bid/ask midpoint
+                        if ticker_data.last > 0:
+                            price = ticker_data.last
+                        else:
+                            price = (ticker_data.bid + ticker_data.ask) / 2
+                        
+                        current_prices[ticker] = price
+                        print(f"💰 {ticker}: ${price:.2f}")
+                        
+                        ib.cancelMktData(contract)
+            
+            # Calculate spreads
+            print(f"\n📈 SPREAD CALCULATIONS:")
+            print("-" * 30)
+            
+            for pair_key, beta in hedge_ratios.items():
+                ticker1, ticker2 = pair_key.split('-')
+                price1 = current_prices[ticker1]
+                price2 = current_prices[ticker2]
+                
+                spread = price1 - beta * price2
+                print(f"📊 {pair_key}: {ticker1}(${price1:.2f}) - {beta:.4f}×{ticker2}(${price2:.2f}) = {spread:.2f}")
+            
+            ib.disconnect()
+            logger.info("🔌 Disconnected from IBKR")
+            
+        except Exception as e:
+            logger.error(f"❌ Error in spread calculation test: {e}")
+            if ib.isConnected():
+                ib.disconnect()
+                
+    except Exception as e:
+        logger.error(f"❌ Error loading training summary: {e}")
+
+def main():
+    """Run the IBKR data tests."""
+    print("🚀 IBKR DATA FORMAT TEST")
+    print("="*50)
+    
+    # Test 1: Explore data format
+    test_ibkr_data_format()
+    
+    # Test 2: Test spread calculation
+    test_spread_calculation_with_ibkr_data()
+    
+    print("\n✅ IBKR data testing complete!")
+
+if __name__ == "__main__":
+    main() 
