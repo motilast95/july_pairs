@@ -94,9 +94,62 @@ def test_ibkr_data_format():
         if ib.isConnected():
             ib.disconnect()
 
+def test_data_timing():
+    """Test when today's closing prices become available."""
+    print("\n⏰ TESTING DATA TIMING")
+    print("="*50)
+    
+    # Connect to IBKR
+    ib = IB()
+    try:
+        ib.connect('127.0.0.1', 7497, clientId=1)
+        logger.info("✅ Connected to IBKR for timing test")
+        
+        # Test JPM to see what data we get
+        contract = Stock('JPM', 'SMART', 'USD')
+        ib.qualifyContracts(contract)
+        
+        # Get last 3 days to see what's available
+        end_time = datetime.now().strftime('%Y%m%d %H:%M:%S')
+        bars = ib.reqHistoricalData(
+            contract,
+            endDateTime=end_time,
+            durationStr='3 D',
+            barSizeSetting='1 day',
+            whatToShow='TRADES',
+            useRTH=True
+        )
+        
+        if bars:
+            print(f"📅 Got {len(bars)} days of data:")
+            for i, bar in enumerate(bars):
+                print(f"  Day {i+1}: {bar.date} - Close=${bar.close:.2f}")
+            
+            # Check if today's data is available
+            today = datetime.now().date()
+            latest_bar_date = bars[-1].date
+            
+            print(f"\n📊 Data Analysis:")
+            print(f"  Today's date: {today}")
+            print(f"  Latest bar date: {latest_bar_date}")
+            
+            if latest_bar_date == today:
+                print("  ✅ Today's closing price is available!")
+            else:
+                print("  ⏳ Today's closing price not yet available")
+                print("  📝 Latest available: previous trading day")
+        
+        ib.disconnect()
+        logger.info("🔌 Disconnected from IBKR")
+        
+    except Exception as e:
+        logger.error(f"❌ Error in timing test: {e}")
+        if ib.isConnected():
+            ib.disconnect()
+
 def test_spread_calculation_with_ibkr_data():
-    """Test our spread calculation using IBKR data."""
-    print("\n🧮 TESTING SPREAD CALCULATION WITH IBKR DATA")
+    """Test our spread calculation using IBKR historical data."""
+    print("\n🧮 TESTING SPREAD CALCULATION WITH IBKR HISTORICAL DATA")
     print("="*50)
     
     # Load our training results to get hedge ratios
@@ -126,36 +179,42 @@ def test_spread_calculation_with_ibkr_data():
                 hedge_ratios[pair_key] = model['beta']
                 print(f"📊 {pair_key}: β={model['beta']:.4f}")
         
-        # Connect to IBKR and get current prices
+        # Connect to IBKR and get yesterday's closing prices
         ib = IB()
         try:
             ib.connect('127.0.0.1', 7497, clientId=1)
-            logger.info("✅ Connected to IBKR for spread calculation test")
+            logger.info("✅ Connected to IBKR for historical data test")
             
-            current_prices = {}
+            today_prices = {}
             
-            # Get current prices for all tickers
+            # Get today's closing prices for all tickers
             for pair_key in hedge_ratios.keys():
                 ticker1, ticker2 = pair_key.split('-')
                 
                 for ticker in [ticker1, ticker2]:
-                    if ticker not in current_prices:
+                    if ticker not in today_prices:
                         contract = Stock(ticker, 'SMART', 'USD')
                         ib.qualifyContracts(contract)
                         
-                        ticker_data = ib.reqMktData(contract)
-                        ib.sleep(2)
+                        # Get today's data (to get today's close)
+                        end_time = datetime.now().strftime('%Y%m%d %H:%M:%S')
+                        bars = ib.reqHistoricalData(
+                            contract,
+                            endDateTime=end_time,
+                            durationStr='1 D',
+                            barSizeSetting='1 day',
+                            whatToShow='TRADES',
+                            useRTH=True
+                        )
                         
-                        # Use last price, fallback to bid/ask midpoint
-                        if ticker_data.last > 0:
-                            price = ticker_data.last
+                        if bars and len(bars) >= 1:
+                            # Get today's closing price (most recent bar)
+                            today_close = bars[-1].close
+                            today_prices[ticker] = today_close
+                            print(f"💰 {ticker}: ${today_close:.2f} (today's close)")
                         else:
-                            price = (ticker_data.bid + ticker_data.ask) / 2
-                        
-                        current_prices[ticker] = price
-                        print(f"💰 {ticker}: ${price:.2f}")
-                        
-                        ib.cancelMktData(contract)
+                            print(f"❌ No historical data for {ticker}")
+                            today_prices[ticker] = None
             
             # Calculate spreads
             print(f"\n📈 SPREAD CALCULATIONS:")
@@ -163,11 +222,14 @@ def test_spread_calculation_with_ibkr_data():
             
             for pair_key, beta in hedge_ratios.items():
                 ticker1, ticker2 = pair_key.split('-')
-                price1 = current_prices[ticker1]
-                price2 = current_prices[ticker2]
+                price1 = today_prices[ticker1]
+                price2 = today_prices[ticker2]
                 
-                spread = price1 - beta * price2
-                print(f"📊 {pair_key}: {ticker1}(${price1:.2f}) - {beta:.4f}×{ticker2}(${price2:.2f}) = {spread:.2f}")
+                if price1 is not None and price2 is not None:
+                    spread = price1 - beta * price2
+                    print(f"📊 {pair_key}: {ticker1}(${price1:.2f}) - {beta:.4f}×{ticker2}(${price2:.2f}) = {spread:.2f}")
+                else:
+                    print(f"❌ {pair_key}: Missing price data")
             
             ib.disconnect()
             logger.info("🔌 Disconnected from IBKR")
@@ -188,7 +250,10 @@ def main():
     # Test 1: Explore data format
     test_ibkr_data_format()
     
-    # Test 2: Test spread calculation
+    # Test 2: Test data timing
+    test_data_timing()
+    
+    # Test 3: Test spread calculation
     test_spread_calculation_with_ibkr_data()
     
     print("\n✅ IBKR data testing complete!")
